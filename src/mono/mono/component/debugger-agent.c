@@ -10384,7 +10384,7 @@ bool mono_debugger_agent_receive_and_process_command (bool attach_failed)
 }
 
 static gboolean
-debugger_agent_enabled()
+debugger_agent_enabled (void)
 {
 	return agent_config.enabled;
 }
