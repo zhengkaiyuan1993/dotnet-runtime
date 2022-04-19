@@ -520,6 +520,8 @@ namespace Microsoft.Extensions.Configuration
             Type itemType = collectionType.GenericTypeArguments[0];
             MethodInfo? addMethod = collectionType.GetMethod("Add", DeclaredOnlyLookup);
 
+            var arguments = new object?[1];
+
             foreach (IConfigurationSection section in config.GetChildren())
             {
                 try
@@ -532,7 +534,8 @@ namespace Microsoft.Extensions.Configuration
                         options: options);
                     if (itemBindingPoint.HasNewValue)
                     {
-                        addMethod?.Invoke(collection, new[] { itemBindingPoint.Value });
+                        arguments[0] = itemBindingPoint.Value;
+                        addMethod?.Invoke(collection, arguments);
                     }
                 }
                 catch
@@ -603,11 +606,14 @@ namespace Microsoft.Extensions.Configuration
 
             MethodInfo addMethod = genericType.GetMethod("Add", DeclaredOnlyLookup)!;
 
+            object?[] arguments = new object?[1];
+
             if (source != null)
             {
                 foreach (object? item in source)
                 {
-                    addMethod.Invoke(instance, new[] {item});
+                    arguments[0] = item;
+                    addMethod.Invoke(instance, arguments);
                 }
             }
 
@@ -623,7 +629,9 @@ namespace Microsoft.Extensions.Configuration
                         options: options);
                     if (itemBindingPoint.HasNewValue)
                     {
-                        addMethod.Invoke(instance, new[] {itemBindingPoint.Value});
+                        arguments[0] = itemBindingPoint.Value;
+
+                        addMethod.Invoke(instance, arguments);
                     }
                 }
                 catch
