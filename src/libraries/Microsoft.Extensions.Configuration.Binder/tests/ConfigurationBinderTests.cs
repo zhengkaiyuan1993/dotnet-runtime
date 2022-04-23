@@ -315,6 +315,7 @@ namespace Microsoft.Extensions.Configuration.Binder.Test
             {
                 {"NonInstantiatedISet:0", "Yo1"},
                 {"NonInstantiatedISet:1", "Yo2"},
+                {"NonInstantiatedISet:2", "Yo2"},
             };
             var configurationBuilder = new ConfigurationBuilder();
             configurationBuilder.AddInMemoryCollection(dic);
@@ -553,6 +554,7 @@ namespace Microsoft.Extensions.Configuration.Binder.Test
             {
                 {"InstantiatedISet:0", "Yo1"},
                 {"InstantiatedISet:1", "Yo2"},
+                {"InstantiatedISet:2", "Yo2"},
             };
             var configurationBuilder = new ConfigurationBuilder();
             configurationBuilder.AddInMemoryCollection(dic);
