@@ -364,7 +364,7 @@ namespace Microsoft.Extensions.Configuration
                     collectionInterface = FindOpenGenericInterface(typeof(ICollection<>), type);
                     if (collectionInterface != null)
                     {
-                        BindCollection(bindingPoint.Value!, bindingPoint.Value!.GetType(), config, options);
+                        BindCollection(bindingPoint.Value!, collectionInterface, config, options);
                     }
                     // Something else
                     else
@@ -462,17 +462,8 @@ namespace Microsoft.Extensions.Configuration
             IConfiguration config, BinderOptions options)
         {
             // ICollection<T> is guaranteed to have exactly one parameter
-            Type itemType = collectionType.GenericTypeArguments.Length == 0 ? typeof(object) : collectionType.GenericTypeArguments[0];
-
-            MethodInfo? addMethod = collectionType
-                .GetMethods(BindingFlags.Instance | BindingFlags.Public).SingleOrDefault(m => m.Name == "Add" && m.GetParameters().Length == 1);
-
-            if (addMethod is null)
-            {
-                return;
-            }
-
-            object?[] arguments = new object?[1];
+            Type itemType = collectionType.GenericTypeArguments[0];
+            MethodInfo? addMethod = collectionType.GetMethod("Add", DeclaredOnlyLookup);
 
             foreach (IConfigurationSection section in config.GetChildren())
             {
@@ -486,8 +477,7 @@ namespace Microsoft.Extensions.Configuration
                         options: options);
                     if (itemBindingPoint.HasNewValue)
                     {
-                        arguments[0] = itemBindingPoint.Value;
-                        addMethod?.Invoke(collection, arguments);
+                        addMethod?.Invoke(collection, new[] { itemBindingPoint.Value });
                     }
                 }
                 catch
