@@ -277,7 +277,7 @@ namespace Microsoft.Extensions.Configuration
             // The interface that we've been given is not something that can be bound to as a collection.
             // We return whether or not it was an IEnumerable<>. If it *was* (i.e. we can't create it), then the caller binds
             // null to it, and if it wasn't (i.e. *not* a collection), then the caller creates an instance of it.
-            bool wasACollection = FindOpenGenericInterface(type, typeof(IEnumerable<>)) != null;
+            bool wasACollection = FindOpenGenericInterface(typeof(IEnumerable<>), type) != null;
             return (wasACollection, null);
         }
 
@@ -353,7 +353,7 @@ namespace Microsoft.Extensions.Configuration
                 }
 
                 // See if it's a Dictionary
-                Type? collectionInterface = FindOpenGenericInterface(type, typeof(IDictionary<,>));
+                Type? collectionInterface = FindOpenGenericInterface(typeof(IDictionary<,>), type);
                 if (collectionInterface != null)
                 {
                     BindDictionary(bindingPoint.Value!, collectionInterface, config, options);
@@ -361,7 +361,7 @@ namespace Microsoft.Extensions.Configuration
                 else
                 {
                     // See if it's an ICollection
-                    collectionInterface = FindOpenGenericInterface(type, typeof(ICollection<>));
+                    collectionInterface = FindOpenGenericInterface(typeof(ICollection<>), type);
                     if (collectionInterface != null)
                     {
                         BindCollection(bindingPoint.Value!, bindingPoint.Value!.GetType(), config, options);
@@ -693,34 +693,27 @@ namespace Microsoft.Extensions.Configuration
                    ;
         }
 
-        // Determines if the type is descended from the desired type.
         private static Type? FindOpenGenericInterface(
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type type,
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type desiredType)
+            Type expected,
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
+            Type actual)
         {
-            Type[] interfaceTypes = type.GetInterfaces();
-
-            foreach (Type it in interfaceTypes)
+            if (actual.IsGenericType &&
+                actual.GetGenericTypeDefinition() == expected)
             {
-                if (it.IsGenericType && it.GetGenericTypeDefinition() == desiredType)
+                return actual;
+            }
+
+            Type[] interfaces = actual.GetInterfaces();
+            foreach (Type interfaceType in interfaces)
+            {
+                if (interfaceType.IsGenericType &&
+                    interfaceType.GetGenericTypeDefinition() == expected)
                 {
-                    return type;
+                    return interfaceType;
                 }
             }
-
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == desiredType)
-            {
-                return type;
-            }
-
-            Type? baseType = type.BaseType;
-
-            if (baseType == null)
-            {
-                return null;
-            }
-
-            return FindOpenGenericInterface(baseType, desiredType);
+            return null;
         }
 
         private static List<PropertyInfo> GetAllProperties([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type)
