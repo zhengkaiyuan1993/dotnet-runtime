@@ -15,6 +15,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace System.Text.RegularExpressions
 {
@@ -269,10 +270,7 @@ namespace System.Text.RegularExpressions
                 // Find the next potential location for a match in the input.
                 if (FindFirstChar())
                 {
-                    if (!ignoreTimeout)
-                    {
-                        DoCheckTimeout();
-                    }
+                    CheckTimeout();
 
                     // Ensure that the runner is initialized.  This includes initializing all of the state in the runner
                     // that Go might use, such as the backtracking stack, as well as a Match object for it to populate.
@@ -373,19 +371,17 @@ namespace System.Text.RegularExpressions
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void CheckTimeout()
         {
-            if (_ignoreTimeout)
-                return;
-
-            DoCheckTimeout();
+            if (!_ignoreTimeout && --_timeoutChecksToSkip == 0)
+            {
+                DoCheckTimeout();
+            }
         }
 
         private void DoCheckTimeout()
         {
-            if (--_timeoutChecksToSkip != 0)
-                return;
-
             _timeoutChecksToSkip = TimeoutCheckFrequency;
 
             // Note that both, Environment.TickCount and timeoutOccursAt are ints and can overflow and become negative.
