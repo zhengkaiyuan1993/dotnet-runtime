@@ -93,7 +93,7 @@ enum MethodClassification
 {
     mcIL        = 0, // IL
     mcFCall     = 1, // FCall (also includes tlbimped ctor, Delegate ctor)
-    mcNDirect   = 2, // N/Direct
+    mcPInvoke   = 2, // PInvoke method also known as N/Direct in this codebase
     mcEEImpl    = 3, // special method; implementation provided by EE (like Delegate Invoke)
     mcArray     = 4, // Array ECall
     mcInstantiated = 5, // Instantiated generic methods, including descriptors
@@ -637,7 +637,7 @@ public:
     inline DWORD IsNDirect()
     {
         LIMITED_METHOD_DAC_CONTRACT;
-        return mcNDirect == GetClassification();
+        return mcPInvoke == GetClassification();
     }
 
     inline DWORD IsInterface()
@@ -1907,7 +1907,7 @@ public:
     static void Init();
 #endif
 
-    template<typename T> friend struct ::cdac_data;
+    friend struct ::cdac_data<MethodDesc>;
 };
 
 template<> struct cdac_data<MethodDesc>
@@ -1915,6 +1915,7 @@ template<> struct cdac_data<MethodDesc>
     static constexpr size_t ChunkIndex = offsetof(MethodDesc, m_chunkIndex);
     static constexpr size_t Slot = offsetof(MethodDesc, m_wSlotNumber);
     static constexpr size_t Flags = offsetof(MethodDesc, m_wFlags);
+    static constexpr size_t Flags3AndTokenRemainder = offsetof(MethodDesc, m_wFlags3AndTokenRemainder);
 };
 
 #ifndef DACCESS_COMPILE
@@ -2348,7 +2349,7 @@ private:
 
     // Followed by array of method descs...
 
-    template<typename T> friend struct ::cdac_data;
+    friend struct ::cdac_data<MethodDescChunk>;
 };
 
 template<>
@@ -2358,6 +2359,7 @@ struct cdac_data<MethodDescChunk>
     static constexpr size_t Next = offsetof(MethodDescChunk, m_next);
     static constexpr size_t Size = offsetof(MethodDescChunk, m_size);
     static constexpr size_t Count = offsetof(MethodDescChunk, m_count);
+    static constexpr size_t FlagsAndTokenRange = offsetof(MethodDescChunk, m_flagsAndTokenRange);
 };
 
 inline int MethodDesc::GetMethodDescChunkIndex() const
@@ -2434,6 +2436,15 @@ public:
 #ifdef DACCESS_COMPILE
     void EnumMemoryRegions(CLRDataEnumMemoryFlags flags);
 #endif
+    friend struct ::cdac_data<StoredSigMethodDesc>;
+};
+
+template<>
+struct cdac_data<StoredSigMethodDesc>
+{
+    static constexpr size_t Sig = offsetof(StoredSigMethodDesc, m_pSig);
+    static constexpr size_t cSig = offsetof(StoredSigMethodDesc, m_cSig);
+    static constexpr size_t ExtendedFlags = offsetof(StoredSigMethodDesc, m_dwExtendedFlags);
 };
 
 //-----------------------------------------------------------------------
@@ -2501,6 +2512,9 @@ public:
         StubTailCallCallTarget,
 
         StubVirtualStaticMethodDispatch,
+        StubDelegateShuffleThunk,
+
+        StubDelegateInvokeMethod,
 
         StubLast
     };
@@ -2649,6 +2663,12 @@ public:
         _ASSERTE(IsILStub());
         return GetILStubType() == DynamicMethodDesc::StubMulticastDelegate;
     }
+    bool IsDelegateInvokeMethodStub() const
+    {
+        LIMITED_METHOD_DAC_CONTRACT;
+        _ASSERTE(IsILStub());
+        return GetILStubType() == DynamicMethodDesc::StubDelegateInvokeMethod;
+    }
     bool IsWrapperDelegateStub() const
     {
         LIMITED_METHOD_DAC_CONTRACT;
@@ -2663,6 +2683,12 @@ public:
         return GetILStubType() == DynamicMethodDesc::StubUnboxingIL;
     }
 #endif
+    bool IsDelegateShuffleThunk() const
+    {
+        LIMITED_METHOD_DAC_CONTRACT;
+        _ASSERTE(IsILStub());
+        return GetILStubType() == DynamicMethodDesc::StubDelegateShuffleThunk;
+    }
 
     // Whether the stub takes a context argument that is an interop MethodDesc.
     bool HasMDContextArg() const
@@ -2675,8 +2701,14 @@ public:
     // following implementations defined in DynamicMethod.cpp
     //
     void Destroy();
+    friend struct ::cdac_data<DynamicMethodDesc>;
 };
 
+template<>
+struct cdac_data<DynamicMethodDesc>
+{
+    static constexpr size_t MethodName = offsetof(DynamicMethodDesc, m_pszMethodName);
+};
 
 class ArrayMethodDesc : public StoredSigMethodDesc
 {
@@ -3428,7 +3460,14 @@ private:
                                                              MethodDesc* pSharedMDescForStub,
                                                              Instantiation methodInst,
                                                              BOOL getSharedNotStub);
+    friend struct ::cdac_data<InstantiatedMethodDesc>;
+};
 
+template<> struct cdac_data<InstantiatedMethodDesc>
+{
+    static constexpr size_t PerInstInfo = offsetof(InstantiatedMethodDesc, m_pPerInstInfo);
+    static constexpr size_t Flags2 = offsetof(InstantiatedMethodDesc, m_wFlags2);
+    static constexpr size_t NumGenericArgs = offsetof(InstantiatedMethodDesc, m_wNumGenericArgs);
 };
 
 inline PTR_MethodTable MethodDesc::GetMethodTable() const
