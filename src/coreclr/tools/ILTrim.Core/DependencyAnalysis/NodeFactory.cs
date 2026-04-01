@@ -29,12 +29,12 @@ namespace ILCompiler.DependencyAnalysis
 
         public FlowAnnotations FlowAnnotations { get; }
 
-        public NodeFactory(IEnumerable<string> trimAssemblies, TrimmerSettings settings)
+        public NodeFactory(IEnumerable<string> trimAssemblies, TrimmerSettings settings, ILogWriter logWriter)
         {
             _trimAssemblies = new HashSet<string>(trimAssemblies);
             Settings = settings;
             var ilProvider = new ILTrimILProvider();
-            Logger = new Logger(Console.Out, ilProvider, isVerbose: false, disableGeneratedCodeHeuristics: false);
+            Logger = new Logger(logWriter, ilProvider, isVerbose: false, disableGeneratedCodeHeuristics: false);
             FlowAnnotations = new FlowAnnotations(Logger, ilProvider, new CompilerGeneratedState(ilProvider, Logger, disableGeneratedCodeHeuristics: false));
         }
 

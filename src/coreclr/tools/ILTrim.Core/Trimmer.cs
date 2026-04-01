@@ -27,7 +27,8 @@ namespace ILCompiler
             IReadOnlyList<string> additionalTrimPaths,
             string outputDir,
             IReadOnlyList<string> referencePaths,
-            TrimmerSettings settings = null)
+            TrimmerSettings settings = null,
+            ILogWriter logWriter = null)
         {
             var context = new ILTrimTypeSystemContext();
             settings = settings ?? new TrimmerSettings();
@@ -49,7 +50,10 @@ namespace ILCompiler
 
             var trimmedAssemblies = new List<string>(additionalTrimPaths.Select(p => Path.GetFileNameWithoutExtension(p)));
             trimmedAssemblies.Add(Path.GetFileNameWithoutExtension(inputPath));
-            var factory = new NodeFactory(trimmedAssemblies, settings);
+
+            logWriter ??= new TextLogWriter(Console.Out);
+
+            var factory = new NodeFactory(trimmedAssemblies, settings, logWriter);
 
             DependencyAnalyzerBase<NodeFactory> analyzer = settings.LogStrategy switch
             {

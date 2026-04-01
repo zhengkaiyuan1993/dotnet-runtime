@@ -18,6 +18,9 @@
 
     <PackageReference Include="Microsoft.DotNet.Cecil" Version="$(MicrosoftDotNetCecilVersion)" />
     <ProjectReference Include="../ILTrim.Core/ILTrim.Core.csproj" />
+    <ProjectReference Include="../aot/ILCompiler.TypeSystem/ILCompiler.TypeSystem.csproj">
+      <Aliases>TypeSystem</Aliases>
+    </ProjectReference>
     <ProjectReference Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests.Cases/**/*.csproj" />
     <ProjectReference Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests.Cases.Expectations/Mono.Linker.Tests.Cases.Expectations.csproj" />
     <ProjectReference Include="../ILVerification/ILVerification.csproj" />
@@ -33,6 +36,9 @@
     <Compile Include="$(ToolsProjectRoot)illink/src/linker/Linker/TypeReferenceExtensions.cs" />
     <Compile Include="$(CoreClrProjectRoot)tools/aot/ILCompiler.Trimming.Tests/Extensions/CecilExtensions.cs" />
     <Compile Include="$(CoreClrProjectRoot)tools/aot/ILCompiler.Trimming.Tests/Extensions/NiceIO.cs" />
+    <Compile Include="$(CoreClrProjectRoot)tools/aot/ILCompiler.Trimming.Tests/TestCasesRunner/AssemblyQualifiedToken.cs" />
+    <Compile Include="$(CoreClrProjectRoot)tools/aot/ILCompiler.Trimming.Tests/TestCasesRunner/TrimmingTestLogger.cs" />
+    <Compile Include="$(CoreClrProjectRoot)tools/aot/ILCompiler.Trimming.Tests/TestCasesRunner/NameUtils.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCases/TestCase.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCases/TestDatabase.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCasesRunner/TestCaseCollector.cs" />

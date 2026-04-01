@@ -17,7 +17,8 @@ namespace Mono.Linker.Tests.TestCasesRunner
                 options.AdditionalLinkAssemblies,
                 options.OutputDirectory,
                 options.ReferencePaths,
-                settings);
+                settings,
+                logger);
             return new TrimmingResults(0);
         }
     }
