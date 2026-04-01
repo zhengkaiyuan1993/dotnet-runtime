@@ -77,7 +77,8 @@ namespace ILCompiler.DependencyAnalysis
             TargetToken = (AssemblyReferenceHandle)builder.AddToken(TableIndex);
         }
 
-        public override int CompareTo(TokenWriterNode other) {
+        public override int CompareTo(TokenWriterNode other)
+        {
             if (other is AssemblyReferenceNode otherAssemblyReferenceNode)
             {
                 // All AssemblyReferenceNodes should have the same table index.

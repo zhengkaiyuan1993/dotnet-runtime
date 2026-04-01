@@ -21,8 +21,10 @@ namespace ILCompiler.DependencyAnalysis
     {
         protected readonly EntityHandle _handle;
 
-        public override TableIndex TableIndex {
-            get {
+        public override TableIndex TableIndex
+        {
+            get
+            {
                 bool gotIndex = MetadataTokens.TryGetTableIndex(_handle.Kind, out TableIndex index);
                 Debug.Assert(gotIndex);
                 return index;

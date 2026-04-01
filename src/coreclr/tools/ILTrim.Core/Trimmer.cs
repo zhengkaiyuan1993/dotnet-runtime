@@ -101,7 +101,8 @@ namespace ILCompiler
                 writer.Save(outputStream);
             });
 
-            if (settings.LogFile != null) {
+            if (settings.LogFile != null)
+            {
                 using var logStream = File.OpenWrite(settings.LogFile);
                 DgmlWriter.WriteDependencyGraphToStream<NodeFactory>(logStream, analyzer, factory);
             }

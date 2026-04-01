@@ -1,7 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -24,27 +23,13 @@ namespace ILCompiler.DependencyAnalysis
 
         private EventDefinitionHandle Handle => (EventDefinitionHandle)_handle;
 
-        // TODO: this could be done when reflection-marking a type for better performance.
-        TypeDefinitionHandle GetDeclaringType()
-        {
-            MetadataReader reader = _module.MetadataReader;
-            EventAccessors accessors = reader.GetEventDefinition(Handle).GetAccessors();
-            MethodDefinitionHandle accessorMethodHandle = !accessors.Remover.IsNil
-                ? accessors.Remover
-                : accessors.Adder;
-            Debug.Assert(!accessorMethodHandle.IsNil);
-            return reader.GetMethodDefinition(accessorMethodHandle).GetDeclaringType();
-        }
-
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory)
         {
             MetadataReader reader = _module.MetadataReader;
 
             EventDefinition eventDef = reader.GetEventDefinition(Handle);
 
-            TypeDefinitionHandle declaringTypeHandle = GetDeclaringType();
-
-            TypeDefinition declaringType = reader.GetTypeDefinition(declaringTypeHandle);
+            TypeDefinitionHandle declaringTypeHandle = eventDef.GetDeclaringType();
 
             DependencyList dependencies = new DependencyList();
 
@@ -66,7 +51,7 @@ namespace ILCompiler.DependencyAnalysis
             if (!accessors.Remover.IsNil)
                 dependencies.Add(factory.MethodDefinition(_module, accessors.Remover), "Event remover");
             if (!accessors.Raiser.IsNil)
-                dependencies.Add(factory.MethodDefinition(_module, accessors.Remover), "Event raiser");
+                dependencies.Add(factory.MethodDefinition(_module, accessors.Raiser), "Event raiser");
             Debug.Assert(accessors.Others.Length == 0);
 
             return dependencies;

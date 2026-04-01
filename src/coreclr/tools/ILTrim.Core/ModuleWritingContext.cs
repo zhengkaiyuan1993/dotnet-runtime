@@ -49,7 +49,8 @@ namespace ILCompiler
 
         public int WriteUnreachableMethodBody(MethodDefinitionHandle methodHandle, EcmaModule module)
         {
-            if (module.MetadataReader.GetMethodDefinition(methodHandle).RelativeVirtualAddress == 0) {
+            if (module.MetadataReader.GetMethodDefinition(methodHandle).RelativeVirtualAddress == 0)
+            {
                 return -1;
             }
 

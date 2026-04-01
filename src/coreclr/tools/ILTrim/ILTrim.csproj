@@ -13,6 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../ILTrim/ILTrim.Core.csproj" />
+    <ProjectReference Include="../ILTrim.Core/ILTrim.Core.csproj" />
   </ItemGroup>
 </Project>

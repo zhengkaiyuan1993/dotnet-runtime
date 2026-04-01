@@ -1,7 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -24,27 +23,13 @@ namespace ILCompiler.DependencyAnalysis
 
         private PropertyDefinitionHandle Handle => (PropertyDefinitionHandle)_handle;
 
-        // TODO: this could be done when reflection-marking a type for better performance.
-        TypeDefinitionHandle GetDeclaringType()
-        {
-            MetadataReader reader = _module.MetadataReader;
-            PropertyAccessors accessors = reader.GetPropertyDefinition(Handle).GetAccessors();
-            MethodDefinitionHandle accessorMethodHandle = !accessors.Getter.IsNil
-                ? accessors.Getter
-                : accessors.Setter;
-            Debug.Assert(!accessorMethodHandle.IsNil);
-            return reader.GetMethodDefinition(accessorMethodHandle).GetDeclaringType();
-        }
-
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory)
         {
             MetadataReader reader = _module.MetadataReader;
 
             PropertyDefinition property = reader.GetPropertyDefinition(Handle);
 
-            TypeDefinitionHandle declaringTypeHandle = GetDeclaringType();
-
-            TypeDefinition declaringType = reader.GetTypeDefinition(declaringTypeHandle);
+            TypeDefinitionHandle declaringTypeHandle = property.GetDeclaringType();
 
             DependencyList dependencies = new DependencyList();
 

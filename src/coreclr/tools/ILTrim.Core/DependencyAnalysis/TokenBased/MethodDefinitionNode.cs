@@ -23,8 +23,10 @@ namespace ILCompiler.DependencyAnalysis
 
         private MethodDefinitionHandle Handle => (MethodDefinitionHandle)_handle;
 
-        public bool IsInstanceMethodOnReferenceType {
-            get {
+        public bool IsInstanceMethodOnReferenceType
+        {
+            get
+            {
                 MethodDefinition methodDef = _module.MetadataReader.GetMethodDefinition(Handle);
                 TypeDefinitionHandle declaringType = methodDef.GetDeclaringType();
                 EcmaType ecmaType = (EcmaType)_module.GetObject(declaringType);
