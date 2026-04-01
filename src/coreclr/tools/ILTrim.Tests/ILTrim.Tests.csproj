@@ -27,6 +27,10 @@
     <Compile Include="$(ToolsProjectRoot)illink/src/linker/Linker/ITryResolve.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/src/linker/Linker/TypeNameResolver.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/src/linker/Linker/ModuleDefinitionExtensions.cs" />
+    <Compile Include="$(ToolsProjectRoot)illink/src/linker/Linker/MemberReferenceExtensions.cs" />
+    <Compile Include="$(ToolsProjectRoot)illink/src/linker/Linker/MethodDefinitionExtensions.cs" />
+    <Compile Include="$(ToolsProjectRoot)illink/src/linker/Linker/MethodReferenceExtensions.cs" />
+    <Compile Include="$(ToolsProjectRoot)illink/src/linker/Linker/TypeReferenceExtensions.cs" />
     <Compile Include="$(CoreClrProjectRoot)tools/aot/ILCompiler.Trimming.Tests/Extensions/CecilExtensions.cs" />
     <Compile Include="$(CoreClrProjectRoot)tools/aot/ILCompiler.Trimming.Tests/Extensions/NiceIO.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCases/TestCase.cs" />

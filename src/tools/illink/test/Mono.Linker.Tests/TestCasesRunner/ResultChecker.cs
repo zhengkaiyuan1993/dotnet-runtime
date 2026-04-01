@@ -36,9 +36,7 @@ namespace Mono.Linker.Tests.TestCasesRunner
     {
         readonly BaseAssemblyResolver _originalsResolver;
         readonly BaseAssemblyResolver _linkedResolver;
-#if !ILTRIM
         readonly TypeNameResolver _linkedTypeNameResolver;
-#endif
         readonly ReaderParameters _originalReaderParameters;
         readonly ReaderParameters _linkedReaderParameters;
 
@@ -60,9 +58,7 @@ namespace Mono.Linker.Tests.TestCasesRunner
         {
             _originalsResolver = originalsResolver;
             _linkedResolver = linkedResolver;
-#if !ILTRIM
             _linkedTypeNameResolver = new TypeNameResolver(new TestResolver(), new TestAssemblyNameResolver(_linkedResolver));
-#endif
             _originalReaderParameters = originalReaderParameters;
             _linkedReaderParameters = linkedReaderParameters;
         }
@@ -372,9 +368,6 @@ namespace Mono.Linker.Tests.TestCasesRunner
                         }
 
                         var expectedTypeName = checkAttrInAssembly.ConstructorArguments[1].Value.ToString();
-#if ILTRIM
-                        TypeDefinition linkedType = linkedAssembly.MainModule.GetType(expectedTypeName);
-#else
                         TypeReference linkedTypeRef = null;
                         try
                         {
@@ -396,7 +389,6 @@ namespace Mono.Linker.Tests.TestCasesRunner
 
                             linkedType = exportedType?.Resolve();
                         }
-#endif
 
                         switch (attributeTypeName)
                         {
@@ -1334,7 +1326,6 @@ namespace Mono.Linker.Tests.TestCasesRunner
             Assert.Fail($"Invalid test assertion.  No method named `{memberName}` exists on the original type `{originalType}`");
         }
 
-#if !ILTRIM
         static string GetFullMemberNameFromDefinition(IMetadataTokenProvider member)
         {
             return GetFullMemberNameFromDefinition(member, out _);
@@ -1390,7 +1381,6 @@ namespace Mono.Linker.Tests.TestCasesRunner
 
             throw new NotImplementedException($"Getting the full member name has not been implemented for {member}");
         }
-#endif
 
         protected TypeDefinition GetOriginalTypeFromInAssemblyAttribute(CustomAttribute inAssemblyAttribute)
         {
