@@ -41,12 +41,7 @@ namespace ILCompiler.DependencyAnalysis
 
             dependencies.Add(factory.TypeDefinition(_module, declaringTypeHandle), "Property owning type");
 
-            foreach (CustomAttributeHandle customAttribute in property.GetCustomAttributes())
-            {
-                // TODO: Matches RemoveSecurityStep in ILLink that is enabled by default in testing, but this should be configurable
-                if (!CustomAttributeNode.IsCustomAttributeForSecurity(_module, customAttribute))
-                    dependencies.Add(factory.CustomAttribute(_module, customAttribute), "Custom attribute of a property");
-            }
+            CustomAttributeNode.AddDependenciesDueToCustomAttributes(ref dependencies, factory, _module, property.GetCustomAttributes());
 
             PropertyAccessors accessors = property.GetAccessors();
             if (!accessors.Getter.IsNil)

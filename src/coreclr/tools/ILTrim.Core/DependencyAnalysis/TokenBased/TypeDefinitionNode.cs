@@ -23,29 +23,26 @@ namespace ILCompiler.DependencyAnalysis
 
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory)
         {
-            yield return new DependencyListEntry(factory.ModuleDefinition(_module), "Owning module");
+            DependencyList dependencies = new DependencyList();
+
+            dependencies.Add(factory.ModuleDefinition(_module), "Owning module");
 
             TypeDefinition typeDef = _module.MetadataReader.GetTypeDefinition(Handle);
             if (!typeDef.BaseType.IsNil)
             {
-                yield return new(factory.GetNodeForToken(_module, typeDef.BaseType), "Base type of a type");
+                dependencies.Add(factory.GetNodeForToken(_module, typeDef.BaseType), "Base type of a type");
             }
 
             foreach (var parameter in typeDef.GetGenericParameters())
             {
-                yield return new(factory.GenericParameter(_module, parameter), "Generic parameter of type");
+                dependencies.Add(factory.GenericParameter(_module, parameter), "Generic parameter of type");
             }
 
-            foreach (CustomAttributeHandle customAttribute in typeDef.GetCustomAttributes())
-            {
-                // TODO: Matches RemoveSecurityStep in ILLink that is enabled by default in testing, but this should be configurable
-                if (!CustomAttributeNode.IsCustomAttributeForSecurity(_module, customAttribute))
-                    yield return new(factory.CustomAttribute(_module, customAttribute), "Custom attribute of a type");
-            }
+            CustomAttributeNode.AddDependenciesDueToCustomAttributes(ref dependencies, factory, _module, typeDef.GetCustomAttributes());
 
             if (typeDef.IsNested)
             {
-                yield return new DependencyListEntry(factory.TypeDefinition(_module, typeDef.GetDeclaringType()), "Declaring type of a type");
+                dependencies.Add(factory.TypeDefinition(_module, typeDef.GetDeclaringType()), "Declaring type of a type");
             }
 
             var type = _module.GetType(Handle);
@@ -53,24 +50,24 @@ namespace ILCompiler.DependencyAnalysis
             {
                 var invokeMethod = type.GetMethod("Invoke"u8, null) as EcmaMethod;
                 if (invokeMethod != null)
-                    yield return new(factory.MethodDefinition(_module, invokeMethod.Handle), "Delegate invoke");
+                    dependencies.Add(factory.MethodDefinition(_module, invokeMethod.Handle), "Delegate invoke");
 
                 var ctorMethod = type.GetMethod(".ctor"u8, null) as EcmaMethod;
                 if (ctorMethod != null)
-                    yield return new(factory.MethodDefinition(_module, ctorMethod.Handle), "Delegate ctor");
+                    dependencies.Add(factory.MethodDefinition(_module, ctorMethod.Handle), "Delegate ctor");
             }
 
             if (type.IsEnum)
             {
                 foreach (var field in typeDef.GetFields())
                 {
-                    yield return new DependencyListEntry(factory.FieldDefinition(_module, field), "Field of enum type");
+                    dependencies.Add(factory.FieldDefinition(_module, field), "Field of enum type");
                 }
             }
 
             if (type.GetStaticConstructor() is EcmaMethod cctor)
             {
-                yield return new(factory.MethodDefinition(_module, cctor.Handle), "Static constructor");
+                dependencies.Add(factory.MethodDefinition(_module, cctor.Handle), "Static constructor");
             }
 
             if (typeDef.Attributes.HasFlag(TypeAttributes.SequentialLayout) || typeDef.Attributes.HasFlag(TypeAttributes.ExplicitLayout))
@@ -81,7 +78,7 @@ namespace ILCompiler.DependencyAnalysis
                     var fieldDef = _module.MetadataReader.GetFieldDefinition(fieldHandle);
                     if (!fieldDef.Attributes.HasFlag(FieldAttributes.Static))
                     {
-                        yield return new DependencyListEntry(factory.FieldDefinition(_module, fieldHandle), "Instance field of a type with sequential or explicit layout");
+                        dependencies.Add(factory.FieldDefinition(_module, fieldHandle), "Instance field of a type with sequential or explicit layout");
                     }
                 }
             }
@@ -91,8 +88,10 @@ namespace ILCompiler.DependencyAnalysis
             {
                 // It's difficult to track where a valuetype gets boxed so consider always constructed
                 // for now (it's on par with IL Linker).
-                yield return new(factory.ConstructedType(ecmaType), "Implicitly constructed valuetype");
+                dependencies.Add(factory.ConstructedType(ecmaType), "Implicitly constructed valuetype");
             }
+
+            return dependencies;
         }
 
         public override bool HasConditionalStaticDependencies

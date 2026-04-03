@@ -21,13 +21,12 @@ namespace ILCompiler.DependencyAnalysis
 
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory)
         {
+            DependencyList dependencies = null;
+
             AssemblyDefinition asmDef = _module.MetadataReader.GetAssemblyDefinition();
-            foreach (CustomAttributeHandle customAttribute in asmDef.GetCustomAttributes())
-            {
-                // TODO: Matches RemoveSecurityStep in ILLink that is enabled by default in testing, but this should be configurable
-                if (!CustomAttributeNode.IsCustomAttributeForSecurity(_module, customAttribute))
-                    yield return new(factory.CustomAttribute(_module, customAttribute), "Custom attribute of an assembly");
-            }
+            CustomAttributeNode.AddDependenciesDueToCustomAttributes(ref dependencies, factory, _module, asmDef.GetCustomAttributes());
+
+            return dependencies;
         }
 
         protected override EntityHandle WriteInternal(ModuleWritingContext writeContext)

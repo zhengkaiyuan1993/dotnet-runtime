@@ -26,22 +26,21 @@ namespace ILCompiler.DependencyAnalysis
 
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory)
         {
+            DependencyList dependencies = new DependencyList();
+
             if (_module.MetadataReader.IsAssembly)
-                yield return new DependencyListEntry(factory.AssemblyDefinition(_module), "Assembly definition of the module");
+                dependencies.Add(factory.AssemblyDefinition(_module), "Assembly definition of the module");
 
-            yield return new DependencyListEntry(factory.TypeDefinition(_module, GlobalModuleTypeHandle), "Global module type");
+            dependencies.Add(factory.TypeDefinition(_module, GlobalModuleTypeHandle), "Global module type");
 
-            foreach (CustomAttributeHandle customAttribute in _module.MetadataReader.GetModuleDefinition().GetCustomAttributes())
-            {
-                // TODO: Matches RemoveSecurityStep in ILLink that is enabled by default in testing, but this should be configurable
-                if (!CustomAttributeNode.IsCustomAttributeForSecurity(_module, customAttribute))
-                    yield return new(factory.CustomAttribute(_module, customAttribute), "Custom attribute of a module");
-            }
+            CustomAttributeNode.AddDependenciesDueToCustomAttributes(ref dependencies, factory, _module, _module.MetadataReader.GetModuleDefinition().GetCustomAttributes());
 
             foreach (var resourceHandle in _module.MetadataReader.ManifestResources)
             {
-                yield return new(factory.ManifestResource(_module, resourceHandle), "Manifest resource of a module");
+                dependencies.Add(factory.ManifestResource(_module, resourceHandle), "Manifest resource of a module");
             }
+
+            return dependencies;
         }
 
         protected override EntityHandle WriteInternal(ModuleWritingContext writeContext)

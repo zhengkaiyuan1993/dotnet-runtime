@@ -38,12 +38,7 @@ namespace ILCompiler.DependencyAnalysis
             if (!eventDef.Type.IsNil)
                 dependencies.Add(factory.GetNodeForToken(_module, eventDef.Type), "Event type");
 
-            foreach (CustomAttributeHandle customAttribute in eventDef.GetCustomAttributes())
-            {
-                // TODO: Matches RemoveSecurityStep in ILLink that is enabled by default in testing, but this should be configurable
-                if (!CustomAttributeNode.IsCustomAttributeForSecurity(_module, customAttribute))
-                    dependencies.Add(factory.CustomAttribute(_module, customAttribute), "Custom attribute of a event");
-            }
+            CustomAttributeNode.AddDependenciesDueToCustomAttributes(ref dependencies, factory, _module, eventDef.GetCustomAttributes());
 
             EventAccessors accessors = eventDef.GetAccessors();
             if (!accessors.Adder.IsNil)

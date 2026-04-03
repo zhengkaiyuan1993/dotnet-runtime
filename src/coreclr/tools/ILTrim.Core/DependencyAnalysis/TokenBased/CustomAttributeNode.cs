@@ -20,6 +20,19 @@ namespace ILCompiler.DependencyAnalysis
 
         private CustomAttributeHandle Handle => (CustomAttributeHandle)_handle;
 
+        public static void AddDependenciesDueToCustomAttributes(ref DependencyList dependencies, NodeFactory factory, EcmaModule module, CustomAttributeHandleCollection handles)
+        {
+            foreach (CustomAttributeHandle customAttribute in handles)
+            {
+                // TODO: Matches RemoveSecurityStep in ILLink that is enabled by default in testing, but this should be configurable
+                if (!IsCustomAttributeForSecurity(module, customAttribute))
+                {
+                    dependencies ??= new DependencyList();
+                    dependencies.Add(factory.CustomAttribute(module, customAttribute), "Custom attribute");
+                }
+            }
+        }
+
         public static bool IsCustomAttributeForSecurity(EcmaModule module, CustomAttributeHandle handle)
         {
             MetadataReader metadataReader = module.MetadataReader;

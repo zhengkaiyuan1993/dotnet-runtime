@@ -41,12 +41,7 @@ namespace ILCompiler.DependencyAnalysis
                 dependencies.Add(factory.GetNodeForToken(_module, fieldDef.GetDefaultValue()), "Constant in field definition");
             }
 
-            foreach (CustomAttributeHandle customAttribute in fieldDef.GetCustomAttributes())
-            {
-                // TODO: Matches RemoveSecurityStep in ILLink that is enabled by default in testing, but this should be configurable
-                if (!CustomAttributeNode.IsCustomAttributeForSecurity(_module, customAttribute))
-                    dependencies.Add(factory.CustomAttribute(_module, customAttribute), "Custom attribute of a field");
-            }
+            CustomAttributeNode.AddDependenciesDueToCustomAttributes(ref dependencies, factory, _module, fieldDef.GetCustomAttributes());
 
             return dependencies;
         }
