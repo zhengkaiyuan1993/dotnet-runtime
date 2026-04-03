@@ -29,7 +29,7 @@ namespace ILCompiler.DependencyAnalysis
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory)
         {
             GenericParameterConstraint genericParamConstraint = _module.MetadataReader.GetGenericParameterConstraint(Handle);
-            yield return new DependencyListEntry(factory.GetNodeForToken(_module, genericParamConstraint.Type), "Parameter constrained to type");
+            yield return new DependencyListEntry(factory.GetNodeForTypeToken(_module, genericParamConstraint.Type), "Parameter constrained to type");
         }
 
         protected override EntityHandle WriteInternal(ModuleWritingContext writeContext)

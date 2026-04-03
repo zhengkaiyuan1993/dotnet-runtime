@@ -36,7 +36,7 @@ namespace ILCompiler.DependencyAnalysis
             dependencies.Add(factory.TypeDefinition(_module, declaringTypeHandle), "Event owning type");
 
             if (!eventDef.Type.IsNil)
-                dependencies.Add(factory.GetNodeForToken(_module, eventDef.Type), "Event type");
+                dependencies.Add(factory.GetNodeForTypeToken(_module, eventDef.Type), "Event type");
 
             CustomAttributeNode.AddDependenciesDueToCustomAttributes(ref dependencies, factory, _module, eventDef.GetCustomAttributes());
 

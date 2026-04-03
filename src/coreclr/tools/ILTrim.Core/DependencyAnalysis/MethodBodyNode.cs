@@ -59,7 +59,7 @@ namespace ILCompiler.DependencyAnalysis
                     if (exceptionRegion.Kind != ExceptionRegionKind.Catch)
                         continue;
 
-                    _dependencies.Add(factory.GetNodeForToken(_module, exceptionRegion.CatchType), "Catch type of exception region");
+                    _dependencies.Add(factory.GetNodeForTypeToken(_module, exceptionRegion.CatchType), "Catch type of exception region");
                 }
             }
 
@@ -136,10 +136,18 @@ namespace ILCompiler.DependencyAnalysis
                             _dependencies.Add(factory.VirtualMethodUse((EcmaMethod)slotMethod), "Callvirt/ldvirtftn");
                         }
 
-                        _dependencies.Add(factory.GetNodeForToken(
-                            _module,
-                            token),
-                            $"Instruction operand");
+                        _dependencies.Add(token.Kind switch
+                        {
+                            HandleKind.TypeDefinition => factory.TypeDefinition(_module, (TypeDefinitionHandle)token),
+                            HandleKind.TypeReference => factory.TypeReference(_module, (TypeReferenceHandle)token),
+                            HandleKind.TypeSpecification => factory.TypeSpecification(_module, (TypeSpecificationHandle)token),
+                            HandleKind.MethodDefinition => factory.MethodDefinition(_module, (MethodDefinitionHandle)token),
+                            HandleKind.FieldDefinition => factory.FieldDefinition(_module, (FieldDefinitionHandle)token),
+                            HandleKind.MemberReference => factory.MemberReference(_module, (MemberReferenceHandle)token),
+                            HandleKind.MethodSpecification => factory.MethodSpecification(_module, (MethodSpecificationHandle)token),
+                            HandleKind.StandaloneSignature => factory.StandaloneSignature(_module, (StandaloneSignatureHandle)token),
+                            _ => throw new InvalidOperationException(token.Kind.ToString()),
+                        }, "Instruction operand");
 
                         if (method != null && !requiresMethodBodyScanner)
                         {

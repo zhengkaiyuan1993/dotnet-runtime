@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using Internal.TypeSystem;
@@ -32,7 +33,7 @@ namespace ILCompiler.DependencyAnalysis
                 case MethodDesc method:
                     if (method.GetTypicalMethodDefinition() is EcmaMethod ecmaMethod && factory.IsModuleTrimmed(ecmaMethod.Module))
                     {
-                        dependencies.Add(factory.GetNodeForToken(ecmaMethod.Module, ecmaMethod.Handle), "Target method def of member reference");
+                        dependencies.Add(factory.MethodDefinition(ecmaMethod.Module, ecmaMethod.Handle), "Target method def of member reference");
                     }
                     break;
 
@@ -40,14 +41,29 @@ namespace ILCompiler.DependencyAnalysis
                     var ecmaField = (EcmaField)field.GetTypicalFieldDefinition();
                     if (factory.IsModuleTrimmed(ecmaField.Module))
                     {
-                        dependencies.Add(factory.GetNodeForToken(ecmaField.Module, ecmaField.Handle), "Target field def of member reference");
+                        dependencies.Add(factory.FieldDefinition(ecmaField.Module, ecmaField.Handle), "Target field def of member reference");
                     }
                     break;
             }
 
             if (!memberRef.Parent.IsNil)
             {
-                dependencies.Add(factory.GetNodeForToken(_module, memberRef.Parent), "Parent of member reference");
+                switch (memberRef.Parent.Kind)
+                {
+                    case HandleKind.TypeDefinition:
+                    case HandleKind.TypeReference:
+                    case HandleKind.TypeSpecification:
+                        dependencies.Add(factory.GetNodeForTypeToken(_module, memberRef.Parent), "Parent of member reference");
+                        break;
+                    case HandleKind.MethodDefinition:
+                        dependencies.Add(factory.MethodDefinition(_module, (MethodDefinitionHandle)memberRef.Parent), "Parent of member reference");
+                        break;
+                    case HandleKind.ModuleReference:
+                        dependencies.Add(factory.ModuleReference(_module, (ModuleReferenceHandle)memberRef.Parent), "Parent of member reference");
+                        break;
+                    default:
+                        throw new InvalidOperationException(memberRef.Parent.Kind.ToString());
+                }
             }
 
             BlobReader signatureBlob = _module.MetadataReader.GetBlobReader(memberRef.Signature);

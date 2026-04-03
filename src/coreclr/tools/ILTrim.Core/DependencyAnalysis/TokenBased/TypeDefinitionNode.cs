@@ -30,7 +30,7 @@ namespace ILCompiler.DependencyAnalysis
             TypeDefinition typeDef = _module.MetadataReader.GetTypeDefinition(Handle);
             if (!typeDef.BaseType.IsNil)
             {
-                dependencies.Add(factory.GetNodeForToken(_module, typeDef.BaseType), "Base type of a type");
+                dependencies.Add(factory.GetNodeForTypeToken(_module, typeDef.BaseType), "Base type of a type");
             }
 
             foreach (var parameter in typeDef.GetGenericParameters())
@@ -114,7 +114,7 @@ namespace ILCompiler.DependencyAnalysis
                 if (interfaceType != null)
                 {
                     yield return new(
-                        factory.GetNodeForToken(_module, intfImpl.Interface),
+                        factory.GetNodeForTypeToken(_module, intfImpl.Interface),
                         factory.InterfaceUse(interfaceType),
                         "Implemented interface");
                 }

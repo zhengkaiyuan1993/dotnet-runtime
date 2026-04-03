@@ -37,7 +37,7 @@ namespace ILCompiler.DependencyAnalysis
 
         private void AnalyzeCustomModifier(SignatureTypeCode typeCode)
         {
-            Dependencies.Add(_factory.GetNodeForToken(_module, _blobReader.ReadTypeHandle()), "Custom modifier");
+            Dependencies.Add(_factory.GetNodeForTypeToken(_module, _blobReader.ReadTypeHandle()), "Custom modifier");
         }
 
         private void AnalyzeType()
@@ -74,7 +74,7 @@ namespace ILCompiler.DependencyAnalysis
                     _blobReader.ReadCompressedInteger();
                     break;
                 case SignatureTypeCode.TypeHandle:
-                    Dependencies.Add(_factory.GetNodeForToken(_module, _blobReader.ReadTypeHandle()), "Signature reference");
+                    Dependencies.Add(_factory.GetNodeForTypeToken(_module, _blobReader.ReadTypeHandle()), "Signature reference");
                     break;
                 case SignatureTypeCode.SZArray:
                 case SignatureTypeCode.Pointer:
@@ -91,8 +91,8 @@ namespace ILCompiler.DependencyAnalysis
                     goto again;
                 case SignatureTypeCode.GenericTypeInstance:
                     _blobReader.ReadCompressedInteger();
-                    Dependencies.Add(_factory.GetNodeForToken(_module, _blobReader.ReadTypeHandle()), "Signature reference");
-                    int numGenericArgs = _blobReader.ReadCompressedInteger();
+                    Dependencies.Add(_factory.GetNodeForTypeToken(_module, _blobReader.ReadTypeHandle()), "Signature reference");
+                    int numGenericArgs= _blobReader.ReadCompressedInteger();
                     for (int i = 0; i < numGenericArgs; i++)
                     {
                         AnalyzeType();

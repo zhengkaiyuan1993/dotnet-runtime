@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -36,7 +37,12 @@ namespace ILCompiler.DependencyAnalysis
             }
             else
             {
-                return factory.GetNodeForToken(_module, typeRef.ResolutionScope);
+                return typeRef.ResolutionScope.Kind switch
+                {
+                    HandleKind.TypeReference => factory.TypeReference(_module, (TypeReferenceHandle)typeRef.ResolutionScope),
+                    HandleKind.ModuleReference => factory.ModuleReference(_module, (ModuleReferenceHandle)typeRef.ResolutionScope),
+                    _ => throw new InvalidOperationException(typeRef.ResolutionScope.Kind.ToString()),
+                };
             }
         }
 
@@ -47,7 +53,7 @@ namespace ILCompiler.DependencyAnalysis
             var typeDescObject = _module.GetObject(Handle);
             if (typeDescObject is EcmaType typeDef && factory.IsModuleTrimmed(typeDef.Module))
             {
-                yield return new(factory.GetNodeForToken(typeDef.Module, typeDef.Handle), "Target of a type reference");
+                yield return new(factory.TypeDefinition(typeDef.Module, typeDef.Handle), "Target of a type reference");
             }
         }
 

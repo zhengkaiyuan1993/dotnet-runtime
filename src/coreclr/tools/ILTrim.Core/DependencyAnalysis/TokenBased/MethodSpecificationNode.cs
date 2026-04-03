@@ -32,7 +32,7 @@ namespace ILCompiler.DependencyAnalysis
                 factory,
                 dependencies);
 
-            dependencies.Add(factory.GetNodeForToken(_module, methodSpec.Method), "Instantiated method");
+            dependencies.Add(factory.GetNodeForMethodToken(_module, methodSpec.Method), "Instantiated method");
 
             return dependencies;
         }

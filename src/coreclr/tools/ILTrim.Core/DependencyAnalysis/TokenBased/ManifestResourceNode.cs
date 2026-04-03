@@ -49,7 +49,16 @@ namespace ILCompiler.DependencyAnalysis
             if (!resource.Implementation.IsNil)
             {
                 DependencyList dependencies = new();
-                dependencies.Add(factory.GetNodeForToken(_module, resource.Implementation), "Implementation of a manifest resource");
+                switch (resource.Implementation.Kind)
+                {
+                    case HandleKind.AssemblyReference:
+                        var referencedAssembly = (EcmaAssembly)_module.GetObject(resource.Implementation);
+                        dependencies.Add(factory.AssemblyReference(_module, referencedAssembly), "Implementation of a manifest resource");
+                        break;
+                    default:
+                        // TODO: Handle AssemblyFile
+                        throw new InvalidOperationException(resource.Implementation.Kind.ToString());
+                }
                 return dependencies;
             }
             else if (_dependencyAnalyzer != null)

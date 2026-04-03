@@ -14,6 +14,7 @@ using ILCompiler.DependencyAnalysisFramework;
 
 using ILCompiler;
 using ILLink.Shared.TrimAnalysis;
+using System.Diagnostics;
 
 namespace ILCompiler.DependencyAnalysis
 {
@@ -39,62 +40,46 @@ namespace ILCompiler.DependencyAnalysis
         }
 
         /// <summary>
-        /// Given a module-qualified token, get the dependency graph node that represent the token.
+        /// Given a module-qualified type token, get the dependency graph node for TypeDef, TypeRef, or TypeSpec.
         /// </summary>
-        public TokenBasedNode GetNodeForToken(EcmaModule module, EntityHandle handle)
+        public TokenBasedNode GetNodeForTypeToken(EcmaModule module, EntityHandle handle)
         {
-            switch (handle.Kind)
+            return handle.Kind switch
             {
-                case HandleKind.TypeReference:
-                    return TypeReference(module, (TypeReferenceHandle)handle);
-                case HandleKind.TypeDefinition:
-                    return TypeDefinition(module, (TypeDefinitionHandle)handle);
-                case HandleKind.FieldDefinition:
-                    return FieldDefinition(module, (FieldDefinitionHandle)handle);
-                case HandleKind.MethodDefinition:
-                    return MethodDefinition(module, (MethodDefinitionHandle)handle);
-                case HandleKind.Parameter:
-                    return Parameter(module, (ParameterHandle)handle);
-                case HandleKind.InterfaceImplementation:
-                    throw new NotImplementedException();
-                case HandleKind.MemberReference:
-                    return MemberReference(module, (MemberReferenceHandle)handle);
-                case HandleKind.Constant:
-                    return Constant(module, (ConstantHandle)handle);
-                case HandleKind.CustomAttribute:
-                    return CustomAttribute(module, (CustomAttributeHandle)handle);
-                case HandleKind.DeclarativeSecurityAttribute:
-                    throw new NotImplementedException();
-                case HandleKind.StandaloneSignature:
-                    return StandaloneSignature(module, (StandaloneSignatureHandle)handle);
-                case HandleKind.EventDefinition:
-                    return EventDefinition(module, (EventDefinitionHandle)handle);
-                case HandleKind.PropertyDefinition:
-                    return PropertyDefinition(module, (PropertyDefinitionHandle)handle);
-                case HandleKind.MethodImplementation:
-                    return MethodImplementation(module, (MethodImplementationHandle)handle);
-                case HandleKind.ModuleReference:
-                    return ModuleReference(module, (ModuleReferenceHandle)handle);
-                case HandleKind.TypeSpecification:
-                    return TypeSpecification(module, (TypeSpecificationHandle)handle);
-                case HandleKind.AssemblyReference:
-                    throw new InvalidOperationException("Assembly references are not represented by token-based nodes.");
-                case HandleKind.AssemblyFile:
-                    throw new NotImplementedException();
-                case HandleKind.ExportedType:
-                    throw new NotImplementedException();
-                case HandleKind.ManifestResource:
-                    return ManifestResource(module, (ManifestResourceHandle)handle);
-                case HandleKind.GenericParameter:
-                    return GenericParameter(module, (GenericParameterHandle)handle);
-                case HandleKind.MethodSpecification:
-                    return MethodSpecification(module, (MethodSpecificationHandle)handle);
-                case HandleKind.GenericParameterConstraint:
-                    return GenericParameterConstraint(module, (GenericParameterConstraintHandle)handle);
-                default:
-                    throw new NotImplementedException();
-            }
+                HandleKind.TypeDefinition => TypeDefinition(module, (TypeDefinitionHandle)handle),
+                HandleKind.TypeReference => TypeReference(module, (TypeReferenceHandle)handle),
+                HandleKind.TypeSpecification => TypeSpecification(module, (TypeSpecificationHandle)handle),
+                _ => throw new InvalidOperationException(handle.Kind.ToString()),
+            };
         }
+
+        /// <summary>
+        /// Given a module-qualified method token, get the dependency graph node for MethodDef, MemberRef, or MethodSpec.
+        /// </summary>
+        public TokenBasedNode GetNodeForMethodToken(EcmaModule module, EntityHandle handle)
+        {
+            return handle.Kind switch
+            {
+                HandleKind.MethodDefinition => MethodDefinition(module, (MethodDefinitionHandle)handle),
+                HandleKind.MemberReference => MemberReference(module, (MemberReferenceHandle)handle),
+                HandleKind.MethodSpecification => MethodSpecification(module, (MethodSpecificationHandle)handle),
+                _ => throw new InvalidOperationException(handle.Kind.ToString()),
+            };
+        }
+
+        /// <summary>
+        /// Given a module-qualified field token, get the dependency graph node for FieldDef or MemberRef.
+        /// </summary>
+        public TokenBasedNode GetNodeForFieldToken(EcmaModule module, EntityHandle handle)
+        {
+            return handle.Kind switch
+            {
+                HandleKind.FieldDefinition => FieldDefinition(module, (FieldDefinitionHandle)handle),
+                HandleKind.MemberReference => MemberReference(module, (MemberReferenceHandle)handle),
+                _ => throw new InvalidOperationException(handle.Kind.ToString()),
+            };
+        }
+
 
         NodeCache<EcmaType, ConstructedTypeNode> _constructedTypes = new NodeCache<EcmaType, ConstructedTypeNode>(key
             => new ConstructedTypeNode(key));

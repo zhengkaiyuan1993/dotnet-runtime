@@ -23,9 +23,9 @@ namespace ILCompiler.DependencyAnalysis
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory)
         {
             var methodImpl = _module.MetadataReader.GetMethodImplementation(Handle);
-            yield return new(factory.GetNodeForToken(_module, methodImpl.MethodBody), "MethodImpl body");
-            yield return new(factory.GetNodeForToken(_module, methodImpl.MethodDeclaration), "MethodImpl decl");
-            yield return new(factory.GetNodeForToken(_module, methodImpl.Type), "MethodImpl type");
+            yield return new(factory.GetNodeForMethodToken(_module, methodImpl.MethodBody), "MethodImpl body");
+            yield return new(factory.GetNodeForMethodToken(_module, methodImpl.MethodDeclaration), "MethodImpl decl");
+            yield return new(factory.GetNodeForTypeToken(_module, methodImpl.Type), "MethodImpl type");
         }
 
         public override string ToString()

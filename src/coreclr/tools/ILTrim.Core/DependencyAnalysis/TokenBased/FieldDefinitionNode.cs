@@ -38,7 +38,7 @@ namespace ILCompiler.DependencyAnalysis
 
             if ((fieldDef.Attributes & FieldAttributes.Literal) == FieldAttributes.Literal)
             {
-                dependencies.Add(factory.GetNodeForToken(_module, fieldDef.GetDefaultValue()), "Constant in field definition");
+                dependencies.Add(factory.Constant(_module, fieldDef.GetDefaultValue()), "Constant in field definition");
             }
 
             CustomAttributeNode.AddDependenciesDueToCustomAttributes(ref dependencies, factory, _module, fieldDef.GetCustomAttributes());
