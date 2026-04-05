@@ -18,27 +18,6 @@ using DependencyList = ILCompiler.DependencyAnalysisFramework.DependencyNodeCore
 
 namespace ILCompiler
 {
-    public class CompilerTypeSystemContext : MetadataTypeSystemContext
-    {
-        public override bool SupportsCanon => false;
-        public override bool SupportsUniversalCanon => false;
-
-        public MethodDesc? GetAsyncVariant(MethodDesc method) => null;
-        public MethodDesc? GetAsyncVariantMethod(MethodDesc method) => null;
-        public MethodDesc? GetTargetOfAsyncVariantMethod(MethodDesc method) => null;
-
-        internal DefType GetClosestDefType(TypeDesc type)
-        {
-            if (type is DefType defType)
-                return defType;
-            return GetWellKnownType(WellKnownType.Array);
-        }
-
-        // Logger.cs uses these to resolve module file names for diagnostics.
-        public Dictionary<string, string> ReferenceFilePaths { get; } = new();
-        public Dictionary<string, string> InputFilePaths { get; } = new();
-    }
-
     public class MetadataManager
     {
         public virtual bool IsReflectionBlocked(TypeDesc type) => false;

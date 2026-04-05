@@ -169,9 +169,9 @@ namespace Mono.Linker.Tests.TestCases
             {
                 throw;
             }
-            catch (Exception) when (isExpectedFailure)
+            catch (Exception ex) when (isExpectedFailure)
             {
-                Assert.Ignore("Known ILTrim limitation");
+                Assert.Ignore($"Known ILTrim limitation: {ex.Message}");
                 return;
             }
 

@@ -35,18 +35,22 @@ namespace Mono.Linker
 
             var ilProvider = new ILTrimILProvider();
 
+            var suppressedCategories = new List<string> { "AOT analysis" };
+            if (context.NoTrimWarn)
+                suppressedCategories.Add("Trim analysis");
+
             Logger logger = new Logger(
                 context.LogWriter,
                 ilProvider,
                 isVerbose: context.LogMessages,
                 suppressedWarnings: context.NoWarn,
-                singleWarn: false,
-                singleWarnEnabledModules: [],
-                singleWarnDisabledModules: [],
-                suppressedCategories: ["AOT analysis"],
-                treatWarningsAsErrors: false,
-                warningsAsErrors: new Dictionary<int, bool>(),
-                disableGeneratedCodeHeuristics: false);
+                singleWarn: context.GeneralSingleWarn,
+                singleWarnEnabledModules: context.SingleWarn.Where(kv => kv.Value).Select(kv => kv.Key),
+                singleWarnDisabledModules: context.SingleWarn.Where(kv => !kv.Value).Select(kv => kv.Key),
+                suppressedCategories: suppressedCategories,
+                treatWarningsAsErrors: context.GeneralWarnAsError,
+                warningsAsErrors: context.WarnAsError,
+                disableGeneratedCodeHeuristics: context.DisableGeneratedCodeHeuristics);
 
             var factory = new NodeFactory(context, logger, ilProvider, tsContext);
 

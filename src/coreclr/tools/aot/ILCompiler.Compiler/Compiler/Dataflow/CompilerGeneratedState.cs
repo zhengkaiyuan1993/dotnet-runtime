@@ -35,7 +35,13 @@ namespace ILCompiler.Dataflow
 
         public CompilerGeneratedState(ILProvider ilProvider, Logger logger, bool disableGeneratedCodeHeuristics)
         {
-            _typeCacheHashtable = new TypeCacheHashtable(new AsyncMaskingILProvider(ilProvider));
+            _typeCacheHashtable = new TypeCacheHashtable(
+#if ILTRIM
+                ilProvider
+#else
+                new AsyncMaskingILProvider(ilProvider)
+#endif
+                );
             _logger = logger;
             _disableGeneratedCodeHeuristics = disableGeneratedCodeHeuristics;
         }

@@ -59,7 +59,6 @@
   <!-- ILCompiler.Compiler shared Dataflow files -->
   <ItemGroup>
     <Compile Include="..\aot\ILCompiler.Compiler\Compiler\Dataflow\ArrayValue.cs" Link="Dataflow\ArrayValue.cs" />
-    <Compile Include="..\aot\ILCompiler.Compiler\Compiler\Dataflow\AsyncMaskingILProvider.cs" Link="Dataflow\AsyncMaskingILProvider.cs" />
     <Compile Include="..\aot\ILCompiler.Compiler\Compiler\Dataflow\AttributeDataFlow.cs" Link="Dataflow\AttributeDataFlow.cs" />
     <Compile Include="..\aot\ILCompiler.Compiler\Compiler\Dataflow\CompilerGeneratedCallGraph.cs" Link="Dataflow\CompilerGeneratedCallGraph.cs" />
     <Compile Include="..\aot\ILCompiler.Compiler\Compiler\Dataflow\CompilerGeneratedState.cs" Link="Dataflow\CompilerGeneratedState.cs" />
