@@ -85,7 +85,7 @@ namespace ILCompiler
             MethodDefinitionHandle sourceEntryPoint = default;
             CorHeader corHeader = _module.PEReader.PEHeaders.CorHeader;
             Debug.Assert((corHeader.Flags & CorFlags.NativeEntryPoint) == 0);
-            if (corHeader.EntryPointTokenOrRelativeVirtualAddress != 0 && !_factory.IsModuleTrimmedInLibraryMode())
+            if (corHeader.EntryPointTokenOrRelativeVirtualAddress != 0)
             {
                 sourceEntryPoint = (MethodDefinitionHandle)MetadataTokens.Handle(corHeader.EntryPointTokenOrRelativeVirtualAddress);
             }

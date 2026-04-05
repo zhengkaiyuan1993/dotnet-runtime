@@ -28,7 +28,7 @@ namespace ILCompiler.DependencyAnalysis
                 _module.Context,
                 content,
                 _module,
-                factory.Settings.FeatureSwitches,
+                factory.Settings.FeatureSettings,
                 factory);
         }
 

@@ -12,6 +12,7 @@ using Internal.IL;
 using Internal.TypeSystem;
 using Internal.TypeSystem.Ecma;
 
+using ILCompiler.Dataflow;
 using ILCompiler.DependencyAnalysisFramework;
 
 using ReflectionMethodBodyScanner = ILCompiler.Dataflow.ReflectionMethodBodyScanner;
@@ -152,12 +153,12 @@ namespace ILCompiler.DependencyAnalysis
                         if (method != null && !requiresMethodBodyScanner)
                         {
                             requiresMethodBodyScanner |= ReflectionMethodBodyScanner.RequiresReflectionMethodBodyScannerForCallSite(
-                                factory.FlowAnnotations, method);
+                                factory.FlowAnnotations, method.GetTypicalMethodDefinition());
                         }
                         if (field != null && !requiresMethodBodyScanner)
                         {
                             requiresMethodBodyScanner |= ReflectionMethodBodyScanner.RequiresReflectionMethodBodyScannerForAccess(
-                                factory.FlowAnnotations, field);
+                                factory.FlowAnnotations, field.GetTypicalFieldDefinition());
                         }
 
                         break;
@@ -168,11 +169,16 @@ namespace ILCompiler.DependencyAnalysis
                 }
             }
 
+            // TODO: add DataflowAnalyzedMethod instead. We should make sure to handle the state machine/nested function case correctly
             if (requiresMethodBodyScanner)
             {
-                var list = ReflectionMethodBodyScanner.ScanAndProcessReturnValue(factory, factory.FlowAnnotations, factory.Logger,
-                    EcmaMethodIL.Create((EcmaMethod)_module.GetMethod(_methodHandle)), out _);
-                _dependencies.AddRange(list);
+                var ecmaMethod = (EcmaMethod)_module.GetMethod(_methodHandle);
+                if (!CompilerGeneratedState.IsNestedFunctionOrStateMachineMember(ecmaMethod))
+                {
+                    var list = ReflectionMethodBodyScanner.ScanAndProcessReturnValue(factory, factory.FlowAnnotations, factory.Logger,
+                        EcmaMethodIL.Create(ecmaMethod), out _);
+                    _dependencies.AddRange(list);
+                }
             }
         }
 

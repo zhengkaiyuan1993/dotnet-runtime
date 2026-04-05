@@ -348,6 +348,7 @@ namespace ILLink.Shared.TrimAnalysis
                 //
                 case IntrinsicId.RuntimeReflectionExtensions_GetMethodInfo:
                 case IntrinsicId.Delegate_get_Method:
+#if !ILTRIM
                     {
                         // Find the parameter: first is an instance method, second is an extension method.
                         MultiValue param = intrinsicId == IntrinsicId.RuntimeReflectionExtensions_GetMethodInfo
@@ -375,6 +376,7 @@ namespace ILLink.Shared.TrimAnalysis
                             }
                         }
                     }
+#endif
                     break;
 
                 //

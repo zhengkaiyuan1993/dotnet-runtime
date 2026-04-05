@@ -51,7 +51,7 @@ namespace ILCompiler.DependencyAnalysis
 
             dependencies.Add(factory.TypeDefinition(_module, declaringType), "Method owning type");
 
-            if (!IsInstanceMethodOnReferenceType || factory.IsModuleTrimmedInLibraryMode())
+            if (!IsInstanceMethodOnReferenceType)
             {
                 // Static methods and methods on value types are not subject to the unused method body optimization.
                 dependencies.Add(factory.MethodBody(_module, Handle), "Method body");

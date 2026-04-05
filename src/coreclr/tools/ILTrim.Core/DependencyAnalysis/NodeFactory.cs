@@ -4,17 +4,21 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 
+using Internal.IL;
 using Internal.TypeSystem;
 using Internal.TypeSystem.Ecma;
 
+using ILCompiler;
 using ILCompiler.Dataflow;
 using ILCompiler.DependencyAnalysisFramework;
 
-using ILCompiler;
 using ILLink.Shared.TrimAnalysis;
-using System.Diagnostics;
+
+using LinkContext = Mono.Linker.LinkContext;
+using AssemblyAction = Mono.Linker.AssemblyAction;
 
 namespace ILCompiler.DependencyAnalysis
 {
@@ -23,19 +27,21 @@ namespace ILCompiler.DependencyAnalysis
     /// </summary>
     public sealed class NodeFactory
     {
-        IReadOnlySet<string> _trimAssemblies { get; }
-        public TrimmerSettings Settings { get; }
+        public LinkContext Settings { get; }
 
         public Logger Logger { get; }
 
         public FlowAnnotations FlowAnnotations { get; }
 
-        public NodeFactory(IEnumerable<string> trimAssemblies, TrimmerSettings settings, ILogWriter logWriter)
+        public NodeFactory(
+            LinkContext settings,
+            Logger logger,
+            ILProvider ilProvider,
+            ILTrimTypeSystemContext typeSystemContext)
         {
-            _trimAssemblies = new HashSet<string>(trimAssemblies);
             Settings = settings;
-            var ilProvider = new ILTrimILProvider();
-            Logger = new Logger(logWriter, ilProvider, isVerbose: false, disableGeneratedCodeHeuristics: false);
+            Logger = logger;
+            TypeSystemContext = typeSystemContext;
             FlowAnnotations = new FlowAnnotations(Logger, ilProvider, new CompilerGeneratedState(ilProvider, Logger, disableGeneratedCodeHeuristics: false));
         }
 
@@ -287,22 +293,12 @@ namespace ILCompiler.DependencyAnalysis
 
         public bool IsModuleTrimmed(EcmaModule module)
         {
-            return _trimAssemblies.Contains(module.Assembly.GetName().Name);
-        }
-
-        public bool IsModuleTrimmedInLibraryMode()
-        {
-            return Settings.LibraryMode;
+            return Settings.CalculateAssemblyAction(module.Assembly.GetName().Name) == AssemblyAction.Link;
         }
 
         // --- Dataflow support properties and methods ---
 
-        private CompilerTypeSystemContext _typeSystemContext;
-        public CompilerTypeSystemContext TypeSystemContext
-        {
-            get => _typeSystemContext;
-            set => _typeSystemContext = value;
-        }
+        public ILTrimTypeSystemContext TypeSystemContext { get; }
 
         private MetadataManager _metadataManager = new UsageBasedMetadataManager();
         public MetadataManager MetadataManager => _metadataManager;
@@ -347,8 +343,6 @@ namespace ILCompiler.DependencyAnalysis
 
         public ExternalTypeMapRequestNode ExternalTypeMapRequest(TypeDesc type) => new ExternalTypeMapRequestNode(type);
         public ProxyTypeMapRequestNode ProxyTypeMapRequest(TypeDesc type) => new ProxyTypeMapRequestNode(type);
-
-        public EcmaModule ModuleMetadata(ModuleDesc module) => (EcmaModule)module;
 
         private struct HandleKey<T> : IEquatable<HandleKey<T>> where T : struct, IEquatable<T>
         {

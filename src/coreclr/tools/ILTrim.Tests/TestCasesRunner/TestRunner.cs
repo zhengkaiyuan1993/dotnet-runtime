@@ -50,8 +50,6 @@ namespace Mono.Linker.Tests.TestCasesRunner
 
         static partial void AddInputReference(NPath inputReference, TrimmingArgumentBuilder builder)
         {
-            if (inputReference.FileNameWithoutExtension != "Mono.Linker.Tests.Cases.Expectations")
-                builder.AddLinkAssembly(inputReference);
             builder.AddReference(inputReference);
         }
     }

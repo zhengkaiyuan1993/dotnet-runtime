@@ -46,6 +46,7 @@
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCasesRunner/TestCaseCompilationMetadataProvider.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCasesRunner/TestCaseLinkerOptions.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCasesRunner/TestCaseMetadataProvider.cs" />
+    <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCasesRunner/TrimmingArgumentBuilder.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCasesRunner/ILCompiler.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCasesRunner/TestCaseCompiler.cs" />
     <Compile Include="$(ToolsProjectRoot)illink/test/Mono.Linker.Tests/TestCasesRunner/ResultChecker.cs" />

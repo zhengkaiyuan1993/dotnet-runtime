@@ -9,6 +9,7 @@
     <Nullable>annotations</Nullable>
     <ToolsCommonPath>$(MSBuildThisFileDirectory)..\Common\</ToolsCommonPath>
     <TypeSystemPath>$(ToolsCommonPath)TypeSystem\</TypeSystemPath>
+    <DefineConstants>$(DefineConstants);ILTRIM</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
@@ -102,6 +103,17 @@
     <Compile Include="..\aot\ILCompiler.Compiler\Compiler\Logging\MessageOrigin.cs" Link="Logging\MessageOrigin.cs" />
     <Compile Include="..\aot\ILCompiler.Compiler\Compiler\Logging\SuppressMessageInfo.cs" Link="Logging\SuppressMessageInfo.cs" />
     <Compile Include="..\aot\ILCompiler.Compiler\Compiler\Logging\UnconditionalSuppressMessageAttributeState.cs" Link="Logging\UnconditionalSuppressMessageAttributeState.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\tools\illink\src\linker\Linker\AssemblyAction.cs" Link="Mono\AssemblyAction.cs" />
+    <Compile Include="..\..\..\tools\illink\src\linker\Linker\AssemblyRootMode.cs" Link="Mono\AssemblyRootMode.cs" />
+    <Compile Include="..\..\..\tools\illink\src\linker\Linker\Driver.cs" Link="Mono\Driver.cs" />
+    <Compile Include="..\..\..\tools\illink\src\linker\Linker\LinkContext.cs" Link="Mono\LinkContext.cs" />
+    <Compile Include="..\..\..\tools\illink\src\linker\Linker\LinkerEventSource.cs" Link="Mono\LinkerEventSource.cs" />
+    <Compile Include="..\..\..\tools\illink\src\linker\Linker\MetadataTrimming.cs" Link="Mono\MetadataTrimming.cs" />
+    <Compile Include="..\..\..\tools\illink\src\linker\Linker\PInvokeInfo.cs" Link="Mono\PInvokeInfo.cs" />
+    <Compile Include="..\..\..\tools\illink\src\linker\Linker\WarnVersion.cs" Link="Mono\WarnVersion.cs" />
   </ItemGroup>
 
   <!-- ILLink.Shared shared items project -->
