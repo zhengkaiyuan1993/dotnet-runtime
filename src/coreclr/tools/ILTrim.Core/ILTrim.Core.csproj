@@ -46,6 +46,7 @@
     <Compile Include="..\Common\Compiler\ProcessLinkerXmlBase.cs" Link="Shared\ProcessLinkerXmlBase.cs" />
     <Compile Include="..\Common\Compiler\FeatureSettings.cs" Link="Shared\FeatureSettings.cs" />
     <Compile Include="..\Common\Compiler\TypeExtensions.cs" Link="Shared\TypeExtensions.cs" />
+    <Compile Include="..\Common\Compiler\DependencyTrackingLevel.cs" Link="Shared\DependencyTrackingLevel.cs" />
     <Compile Include="..\Common\System\Collections\Generic\ArrayBuilder.cs" Link="Shared\ArrayBuilder.cs" />
   </ItemGroup>
 

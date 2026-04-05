@@ -24,6 +24,8 @@ namespace Mono.Linker
 
         public int EffectiveDegreeOfParallelism => MaxDegreeOfParallelism ?? Environment.ProcessorCount;
 
+        public string DependenciesFileName { get; set; }
+
         public void LogError(MessageOrigin? origin, DiagnosticId id, params string[] args)
         {
             MessageContainer? error = MessageContainer.CreateErrorMessage(origin, id, args);

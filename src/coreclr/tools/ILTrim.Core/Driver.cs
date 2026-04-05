@@ -54,16 +54,10 @@ namespace Mono.Linker
 
             var factory = new NodeFactory(context, logger, ilProvider, tsContext);
 
-            // TODO: Should configure based on LinkContext
-            //DependencyAnalyzerBase<NodeFactory> analyzer = settings.LogStrategy switch
-            //{
-            //    LogStrategy.None => new DependencyAnalyzer<NoLogStrategy<NodeFactory>, NodeFactory>(factory, resultSorter: null),
-            //    LogStrategy.FirstMark => new DependencyAnalyzer<FirstMarkLogStrategy<NodeFactory>, NodeFactory>(factory, resultSorter: null),
-            //    LogStrategy.FullGraph => new DependencyAnalyzer<FullGraphLogStrategy<NodeFactory>, NodeFactory>(factory, resultSorter: null),
-            //    LogStrategy.EventSource => new DependencyAnalyzer<EventSourceLogStrategy<NodeFactory>, NodeFactory>(factory, resultSorter: null),
-            //    _ => throw new ArgumentException("Invalid log strategy")
-            //};
-            var analyzer = new DependencyAnalyzer<NoLogStrategy<NodeFactory>, NodeFactory>(factory, resultSorter: null);
+            DependencyTrackingLevel trackingLevel = context.DependenciesFileName is not null
+                ? DependencyTrackingLevel.All
+                : DependencyTrackingLevel.None;
+            DependencyAnalyzerBase<NodeFactory> analyzer = trackingLevel.CreateDependencyGraph(factory);
 
             analyzer.ComputeDependencyRoutine += ComputeDependencyNodeDependencies;
 
@@ -87,12 +81,11 @@ namespace Mono.Linker
                 writer.Save(outputStream);
             });
 
-            // TODO: emit based on LinkContext
-            //if (settings.LogFile != null)
-            //{
-            //    using var logStream = File.OpenWrite(settings.LogFile);
-            //    DgmlWriter.WriteDependencyGraphToStream<NodeFactory>(logStream, analyzer, factory);
-            //}
+            if (context.DependenciesFileName is not null)
+            {
+                using var logStream = File.OpenWrite(context.DependenciesFileName);
+                DgmlWriter.WriteDependencyGraphToStream<NodeFactory>(logStream, analyzer, factory);
+            }
 
             return logger.HasLoggedErrors ? 1 : 0;
 
@@ -130,6 +123,17 @@ namespace Mono.Linker
                 DefaultAction = AssemblyAction.Link,
                 KeepComInterfaces = true,
             };
+        }
+
+        // TODO-ILTRIM: ILTrim only supports DGML format; XML is emitted as DGML
+        protected virtual void AddXmlDependencyRecorder(LinkContext context, string fileName)
+        {
+            context.DependenciesFileName = fileName;
+        }
+
+        protected virtual void AddDgmlDependencyRecorder(LinkContext context, string fileName)
+        {
+            context.DependenciesFileName = fileName;
         }
 
         static List<DependencyNodeCore<NodeFactory>> GetStandardPipeline()

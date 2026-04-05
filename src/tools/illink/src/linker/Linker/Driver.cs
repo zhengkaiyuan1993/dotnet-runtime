@@ -849,7 +849,6 @@ namespace Mono.Linker
             }
             if (dumpDependencies)
             {
-#if !ILTRIM
                 switch (fileType)
                 {
                     case DependenciesFileFormat.Xml:
@@ -862,7 +861,6 @@ namespace Mono.Linker
                         context.LogError(null, DiagnosticId.InvalidDependenciesFileFormat);
                         break;
                 }
-#endif
             }
 
 
