@@ -20,7 +20,7 @@ namespace Mono.Linker
 
         public ILogWriter LogWriter => _logger;
 
-        public int? MaxDegreeOfParallelism { get; init; }
+        public int? MaxDegreeOfParallelism { get; set; }
 
         public int EffectiveDegreeOfParallelism => MaxDegreeOfParallelism ?? Environment.ProcessorCount;
 

@@ -431,6 +431,13 @@ namespace Mono.Linker
 
                             context.SetCustomData(values[0], values[1]);
                             continue;
+#else
+                        case "--parallelism":
+                            if (!GetStringParam(token, out string? parallelismValue))
+                                return -1;
+
+                            context.MaxDegreeOfParallelism = int.Parse(parallelismValue);
+                            continue;
 #endif
 
                         case "--keep-com-interfaces":
