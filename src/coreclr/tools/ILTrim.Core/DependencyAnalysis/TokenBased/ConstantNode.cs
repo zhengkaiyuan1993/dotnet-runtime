@@ -21,12 +21,7 @@ namespace ILCompiler.DependencyAnalysis
 
         private ConstantHandle Handle => (ConstantHandle)_handle;
 
-        public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory)
-        {
-            Constant constant = _module.MetadataReader.GetConstant(Handle);
-            // TODO: the Value might depend on other tokens
-            yield break;
-        }
+        public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory) => null;
 
         protected override EntityHandle WriteInternal(ModuleWritingContext writeContext)
         {
@@ -35,7 +30,6 @@ namespace ILCompiler.DependencyAnalysis
 
             var builder = writeContext.MetadataBuilder;
 
-            // TODO: the value blob might contain references to tokens we need to rewrite
             var valueBlob = reader.GetBlobReader(constant.Value);
             object value = constant.TypeCode switch
             {
