@@ -24,12 +24,11 @@ namespace ILCompiler.DependencyAnalysis
         {
             foreach (CustomAttributeHandle customAttribute in handles)
             {
-                // TODO: Matches RemoveSecurityStep in ILLink that is enabled by default in testing, but this should be configurable
-                if (!IsCustomAttributeForSecurity(module, customAttribute))
-                {
-                    dependencies ??= new DependencyList();
-                    dependencies.Add(factory.CustomAttribute(module, customAttribute), "Custom attribute");
-                }
+                if (factory.Settings.StripSecurity && IsCustomAttributeForSecurity(module, customAttribute))
+                    continue;
+
+                dependencies ??= new DependencyList();
+                dependencies.Add(factory.CustomAttribute(module, customAttribute), "Custom attribute");
             }
         }
 
