@@ -1179,7 +1179,8 @@ namespace ILCompiler.DependencyAnalysis
             isHidden = false;
             if (node == Header)
             {
-                return new Utf8String("RTR_HEADER"u8);
+                string symbolName = CompositeImageSettings?.ReadyToRunHeaderSymbolName;
+                return new Utf8String(string.IsNullOrEmpty(symbolName) ? "RTR_HEADER" : symbolName);
             }
             return default;
         }
