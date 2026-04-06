@@ -144,8 +144,19 @@ namespace ILCompiler.DependencyAnalysis
 
             // Check to see if we have any dataflow annotations on the type.
             // The check below also covers flow annotations inherited through base classes and implemented interfaces.
-            if (!_type.IsInterface /* "IFoo x; x.GetType();" -> this doesn't actually return an interface type */
-                && factory.FlowAnnotations.GetTypeAnnotation(_type) != default)
+            bool allocatedWithFlowAnnotations = factory.FlowAnnotations.GetTypeAnnotation(_type) != default;
+
+            if (allocatedWithFlowAnnotations)
+            {
+                result ??= new List<CombinedDependencyListEntry>();
+                result.Add(new DependencyNodeCore<NodeFactory>.CombinedDependencyListEntry(
+                    factory.ObjectGetTypeFlowDependencies(_type),
+                    factory.ObjectGetTypeCalled(_type),
+                    "Type exists and GetType called on it"));
+            }
+
+            if (allocatedWithFlowAnnotations
+                && !_type.IsInterface /* "IFoo x; x.GetType();" -> this doesn't actually return an interface type */)
             {
                 // We have some flow annotations on this type.
                 //
@@ -163,8 +174,8 @@ namespace ILCompiler.DependencyAnalysis
                     // Ensure we have the flow dependencies.
                     result ??= new List<CombinedDependencyListEntry>();
                     result.Add(new(
-                        factory.ObjectGetTypeFlowDependencies(_type),
-                        factory.ObjectGetTypeFlowDependencies((EcmaType)baseType.GetTypeDefinition()),
+                        factory.ObjectGetTypeCalled(_type),
+                        factory.ObjectGetTypeCalled((EcmaType)baseType.GetTypeDefinition()),
                         "GetType called on the base type"));
 
                     // We don't have to follow all the bases since the base MethodTable will bubble this up
@@ -179,8 +190,8 @@ namespace ILCompiler.DependencyAnalysis
                         // Ensure we have the flow dependencies.
                         result ??= new List<CombinedDependencyListEntry>();
                         result.Add(new(
-                            factory.ObjectGetTypeFlowDependencies(_type),
-                            factory.ObjectGetTypeFlowDependencies((EcmaType)interfaceType.GetTypeDefinition()),
+                            factory.ObjectGetTypeCalled(_type),
+                            factory.ObjectGetTypeCalled((EcmaType)interfaceType.GetTypeDefinition()),
                             "GetType called on the interface"));
                     }
 

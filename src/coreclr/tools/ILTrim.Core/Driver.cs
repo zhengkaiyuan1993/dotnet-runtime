@@ -12,6 +12,8 @@ using ILCompiler.Dataflow;
 using ILCompiler.DependencyAnalysis;
 using ILCompiler.DependencyAnalysisFramework;
 
+using ILLink.Shared;
+
 using Internal.TypeSystem;
 using Internal.TypeSystem.Ecma;
 
@@ -35,9 +37,9 @@ namespace Mono.Linker
 
             var ilProvider = new ILTrimILProvider();
 
-            var suppressedCategories = new List<string> { "AOT analysis" };
+            var suppressedCategories = new List<string> { MessageSubCategory.AotAnalysis };
             if (context.NoTrimWarn)
-                suppressedCategories.Add("Trim analysis");
+                suppressedCategories.Add(MessageSubCategory.TrimAnalysis);
 
             Logger logger = new Logger(
                 context.LogWriter,

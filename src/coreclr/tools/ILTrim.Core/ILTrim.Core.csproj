@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);TRIMMER</DefineConstants>
     <TargetFramework>$(NetCoreAppToolCurrent)</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>x64;x86</Platforms>
@@ -50,6 +49,8 @@
     <Compile Include="..\Common\Compiler\DependencyTrackingLevel.cs" Link="Shared\DependencyTrackingLevel.cs" />
     <Compile Include="..\Common\System\Collections\Generic\ArrayBuilder.cs" Link="Shared\ArrayBuilder.cs" />
     <Compile Include="..\aot\ILCompiler.Compiler\Compiler\DescriptorMarker.cs" Link="Shared\DescriptorMarker.cs"/>
+    <Compile Include="..\aot\ILCompiler.Compiler\Compiler\DependencyAnalysis\ObjectGetTypeCalledNode.cs" Link="DependencyAnalysis\ObjectGetTypeCalledNode.cs" />
+    <Compile Include="..\aot\ILCompiler.Compiler\Compiler\DependencyAnalysis\ObjectGetTypeFlowDependenciesNode.cs" Link="DependencyAnalysis\ObjectGetTypeFlowDependenciesNode.cs" />
   </ItemGroup>
 
   <!-- ILCompiler.Compiler shared extension method files -->

@@ -33,6 +33,8 @@ namespace ILCompiler.DependencyAnalysis
 
         public FlowAnnotations FlowAnnotations { get; }
 
+        public ILTrimTypeSystemContext TypeSystemContext { get; }
+
         public NodeFactory(
             LinkContext settings,
             Logger logger,
@@ -94,9 +96,9 @@ namespace ILCompiler.DependencyAnalysis
             return _constructedTypes.GetOrAdd(type);
         }
 
-        NodeCache<EcmaType, ObjectGetTypeFlowDependenciesNode> _objectGetTypeFlowDependencies = new NodeCache<EcmaType, ObjectGetTypeFlowDependenciesNode>(key
+        NodeCache<MetadataType, ObjectGetTypeFlowDependenciesNode> _objectGetTypeFlowDependencies = new NodeCache<MetadataType, ObjectGetTypeFlowDependenciesNode>(key
             => new ObjectGetTypeFlowDependenciesNode(key));
-        public ObjectGetTypeFlowDependenciesNode ObjectGetTypeFlowDependencies(EcmaType type)
+        internal ObjectGetTypeFlowDependenciesNode ObjectGetTypeFlowDependencies(MetadataType type)
         {
             return _objectGetTypeFlowDependencies.GetOrAdd(type);
         }
@@ -296,53 +298,60 @@ namespace ILCompiler.DependencyAnalysis
             return Settings.CalculateAssemblyAction(module.Assembly.GetName().Name) == AssemblyAction.Link;
         }
 
-        // --- Dataflow support properties and methods ---
-
-        public ILTrimTypeSystemContext TypeSystemContext { get; }
-
-        private MetadataManager _metadataManager = new UsageBasedMetadataManager();
-        public MetadataManager MetadataManager => _metadataManager;
-
-        NodeCache<TypeDesc, ReflectedTypeNode> _reflectedTypes = new NodeCache<TypeDesc, ReflectedTypeNode>(key
-            => new ReflectedTypeNode(key));
-        public ReflectedTypeNode ReflectedType(TypeDesc type) => _reflectedTypes.GetOrAdd(type);
-
-        NodeCache<MethodDesc, ReflectedMethodNode> _reflectedMethods = new NodeCache<MethodDesc, ReflectedMethodNode>(key
-            => new ReflectedMethodNode(key));
-        public ReflectedMethodNode ReflectedMethod(MethodDesc method) => _reflectedMethods.GetOrAdd(method);
-
-        NodeCache<FieldDesc, ReflectedFieldNode> _reflectedFields = new NodeCache<FieldDesc, ReflectedFieldNode>(key
-            => new ReflectedFieldNode(key));
-        public ReflectedFieldNode ReflectedField(FieldDesc field) => _reflectedFields.GetOrAdd(field);
-
-        NodeCache<DefType, StructMarshallingDataNode> _structMarshallingDataNodes = new NodeCache<DefType, StructMarshallingDataNode>(key
-            => new StructMarshallingDataNode(key));
-        public StructMarshallingDataNode StructMarshallingData(DefType type) => _structMarshallingDataNodes.GetOrAdd(type);
-
-        NodeCache<DefType, DelegateMarshallingDataNode> _delegateMarshallingDataNodes = new NodeCache<DefType, DelegateMarshallingDataNode>(key
-            => new DelegateMarshallingDataNode(key));
-        public DelegateMarshallingDataNode DelegateMarshallingData(DefType type) => _delegateMarshallingDataNodes.GetOrAdd(type);
-
-        private ReflectedDelegateNode _unknownReflectedDelegate = new ReflectedDelegateNode(null);
-        NodeCache<TypeDesc, ReflectedDelegateNode> _reflectedDelegates = new NodeCache<TypeDesc, ReflectedDelegateNode>(key
-            => new ReflectedDelegateNode(key));
-        public ReflectedDelegateNode ReflectedDelegate(TypeDesc type)
-        {
-            if (type == null)
-                return _unknownReflectedDelegate;
-            return _reflectedDelegates.GetOrAdd(type);
-        }
-
         NodeCache<MetadataType, ObjectGetTypeCalledNode> _objectGetTypeCalledNodes = new NodeCache<MetadataType, ObjectGetTypeCalledNode>(key
             => new ObjectGetTypeCalledNode(key));
-        public ObjectGetTypeCalledNode ObjectGetTypeCalled(MetadataType type) => _objectGetTypeCalledNodes.GetOrAdd(type);
 
-        NodeCache<TypeDesc, DataflowAnalyzedTypeDefinitionNode> _dataflowAnalyzedTypes = new NodeCache<TypeDesc, DataflowAnalyzedTypeDefinitionNode>(key
-            => new DataflowAnalyzedTypeDefinitionNode(key));
-        public DataflowAnalyzedTypeDefinitionNode DataflowAnalyzedTypeDefinition(TypeDesc type) => _dataflowAnalyzedTypes.GetOrAdd(type);
+        public object ReflectedType(TypeDesc type)
+        {
+            // TODO: this should be a separate node with more logic
 
-        public ExternalTypeMapRequestNode ExternalTypeMapRequest(TypeDesc type) => new ExternalTypeMapRequestNode(type);
-        public ProxyTypeMapRequestNode ProxyTypeMapRequest(TypeDesc type) => new ProxyTypeMapRequestNode(type);
+            while (type.IsParameterizedType)
+                type = ((ParameterizedType)type).ParameterType;
+
+            var definition = (EcmaType)type.GetTypeDefinition();
+
+            if (!IsModuleTrimmed(definition.Module))
+                return NullDependencyNode.Instance;
+
+            return TypeDefinition(definition.Module, definition.Handle);
+        }
+
+        public object ReflectedMethod(MethodDesc method)
+        {
+            // TODO: this should be a separate node with more logic
+            var definition = (EcmaMethod)method.GetTypicalMethodDefinition();
+
+            if (!IsModuleTrimmed(definition.Module))
+                return NullDependencyNode.Instance;
+
+            return MethodDefinition(definition.Module, definition.Handle);
+        }
+
+        public object ReflectedField(FieldDesc field)
+        {
+            // TODO: this should be a separate node with more logic
+            var definition = (EcmaField)field.GetTypicalFieldDefinition();
+
+            if (!IsModuleTrimmed(definition.Module))
+                return NullDependencyNode.Instance;
+
+            return FieldDefinition(definition.Module, definition.Handle);
+        }
+
+        public class NullDependencyNode : DependencyNodeCore<NodeFactory>
+        {
+            public static readonly NullDependencyNode Instance = new NullDependencyNode();
+            public override bool InterestingForDynamicDependencyAnalysis => false;
+            public override bool HasDynamicDependencies => false;
+            public override bool HasConditionalStaticDependencies => false;
+            public override bool StaticDependenciesAreComputed => true;
+            public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory context) => Array.Empty<DependencyListEntry>();
+            public override IEnumerable<CombinedDependencyListEntry> GetConditionalStaticDependencies(NodeFactory context) => null!;
+            public override IEnumerable<CombinedDependencyListEntry> SearchDynamicDependencies(List<DependencyNodeCore<NodeFactory>> markedNodes, int firstNode, NodeFactory context) => Array.Empty<CombinedDependencyListEntry>();
+            protected override string GetName(NodeFactory context) => $"Null dependency";
+        }
+
+        internal ObjectGetTypeCalledNode ObjectGetTypeCalled(MetadataType type) => _objectGetTypeCalledNodes.GetOrAdd(type);
 
         private struct HandleKey<T> : IEquatable<HandleKey<T>> where T : struct, IEquatable<T>
         {

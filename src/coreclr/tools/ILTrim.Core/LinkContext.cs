@@ -81,6 +81,7 @@ namespace Mono.Linker
                 return action;
 
             // TODO-ILTRIM: match CalculateAssemblyAction from illink (IsTrimmable, C++/CLI, etc.)
+            // THREAD SAFETY IF YOU MODIFY _actions!!!
             return DefaultAction;
         }
 
