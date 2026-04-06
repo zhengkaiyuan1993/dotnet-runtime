@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -12,41 +13,54 @@ using System.Threading.Tasks;
 
 using Internal.TypeSystem.Ecma;
 
+using CodeOptimizations = Mono.Linker.CodeOptimizations;
+
 namespace ILCompiler.DependencyAnalysis
 {
     public class ManifestResourceNode : TokenBasedNode
     {
         private ManifestResourceHandle Handle => (ManifestResourceHandle)_handle;
 
-        private readonly IManifestResourceDependencyAnalyzer _dependencyAnalyzer;
-        private readonly bool _skipWritingResource;
+        private bool? _skipWritingResource;
 
         public ManifestResourceNode(EcmaModule module, ManifestResourceHandle handle)
-            : base(module, handle)
-        {
-            MetadataReader reader = _module.MetadataReader;
-            ManifestResource resource = reader.GetManifestResource(Handle);
-
-            switch (reader.GetString(resource.Name))
-            {
-                case "ILLink.Descriptors.xml":
-                    _dependencyAnalyzer = new ILLinkDescriptorDependencyAnalyzer(_module);
-                    _skipWritingResource = true;
-                    break;
-
-                default:
-                    _dependencyAnalyzer = null;
-                    _skipWritingResource = false;
-                    break;
-            }
-        }
+            : base(module, handle) { }
 
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory factory)
         {
-            MetadataReader reader = _module.MetadataReader;
-            ManifestResource resource = reader.GetManifestResource(Handle);
+            ManifestResource resource = _module.MetadataReader.GetManifestResource(Handle);
 
-            if (!resource.Implementation.IsNil)
+            _skipWritingResource = false;
+
+            if (resource.Implementation.IsNil)
+            {
+                string resourceName = _module.MetadataReader.GetString(resource.Name);
+                if (resourceName == "ILLink.Descriptors.xml")
+                {
+                    string assemblyName = _module.Assembly.GetName().Name;
+                    _skipWritingResource = factory.Settings.Optimizations.IsEnabled(CodeOptimizations.RemoveDescriptors, assemblyName);
+
+                    if (factory.Settings.IgnoreDescriptors)
+                        return null;
+
+                    PEMemoryBlock resourceDirectory = _module.PEReader.GetSectionData(_module.PEReader.PEHeaders.CorHeader.ResourcesDirectory.RelativeVirtualAddress);
+                    BlobReader reader = resourceDirectory.GetReader((int)resource.Offset, resourceDirectory.Length - (int)resource.Offset);
+                    int length = (int)reader.ReadUInt32();
+
+                    UnmanagedMemoryStream ms;
+                    unsafe
+                    {
+                        ms = new UnmanagedMemoryStream(reader.CurrentPointer, length);
+                    }
+
+                    return DescriptorMarker.GetDependencies(factory.Logger, factory, ms, resource, _module, "resource " + resourceName + " in " + _module.ToString(), factory.Settings.FeatureSettings);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else
             {
                 DependencyList dependencies = new();
                 switch (resource.Implementation.Kind)
@@ -61,40 +75,20 @@ namespace ILCompiler.DependencyAnalysis
                 }
                 return dependencies;
             }
-            else if (_dependencyAnalyzer != null)
-            {
-                PEMemoryBlock resourceDirectory = _module.PEReader.GetSectionData(_module.PEReader.PEHeaders.CorHeader.ResourcesDirectory.RelativeVirtualAddress);
-                BlobReader blobReader = resourceDirectory.GetReader((int)resource.Offset, _module.PEReader.PEHeaders.CorHeader.ResourcesDirectory.Size - (int)resource.Offset);
-                int length = (int)blobReader.ReadUInt32();
-
-                UnmanagedMemoryStream ms;
-                unsafe
-                {
-                    ms = new UnmanagedMemoryStream(blobReader.CurrentPointer, length);
-                }
-
-                return _dependencyAnalyzer.GetDependencies(factory, ms);
-            }
-            else
-            {
-                return null;
-            }
         }
 
         public override void BuildTokens(TokenMap.Builder builder)
         {
-            if (_skipWritingResource)
-                return;
-
-            base.BuildTokens(builder);
+            Debug.Assert(_skipWritingResource.HasValue, "Should have called GetStaticDependencies before writing");
+            if (!_skipWritingResource.Value)
+                base.BuildTokens(builder);
         }
 
         public override void Write(ModuleWritingContext writeContext)
         {
-            if (_skipWritingResource)
-                return;
-
-            base.Write(writeContext);
+            Debug.Assert(_skipWritingResource.HasValue, "Should have called GetStaticDependencies before writing");
+            if (!_skipWritingResource.Value)
+                base.Write(writeContext);
         }
 
         protected override EntityHandle WriteInternal(ModuleWritingContext writeContext)
@@ -123,11 +117,6 @@ namespace ILCompiler.DependencyAnalysis
         {
             MetadataReader reader = _module.MetadataReader;
             return reader.GetString(reader.GetManifestResource(Handle).Name);
-        }
-
-        public interface IManifestResourceDependencyAnalyzer
-        {
-            DependencyList GetDependencies(NodeFactory factory, Stream content);
         }
     }
 }
