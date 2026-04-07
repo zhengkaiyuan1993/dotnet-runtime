@@ -7,8 +7,7 @@
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>x64;x86</Platforms>
-    <!-- Arcade uses xunit by default, ILTrim uses NUnit to match Mono.Linker.Tests. -->
-    <TestRunnerName>NUnit</TestRunnerName>
+    <TestRunnerName>MSTest</TestRunnerName>
     <!-- Suppress analyzer warnings in old prototype code -->
     <NoWarn>$(NoWarn);CS8602;CS8604</NoWarn>
   </PropertyGroup>

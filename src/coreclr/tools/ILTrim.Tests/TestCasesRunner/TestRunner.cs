@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Mono.Linker.Tests.Extensions;
-using NUnit.Framework;
 
 namespace Mono.Linker.Tests.TestCasesRunner
 {
@@ -13,7 +13,7 @@ namespace Mono.Linker.Tests.TestCasesRunner
     {
         partial void IgnoreTest(string reason)
         {
-            Assert.Ignore(reason);
+            Assert.Inconclusive(reason);
         }
 
         private partial IEnumerable<string>? GetAdditionalDefines() => null;
@@ -26,10 +26,7 @@ namespace Mono.Linker.Tests.TestCasesRunner
             }
             catch (AggregateException e)
             {
-                if (e.InnerException is AssertionException
-                    || e.InnerException is SuccessException
-                    || e.InnerException is IgnoreException
-                    || e.InnerException is InconclusiveException)
+                if (e.InnerException is UnitTestAssertException)
                     throw e.InnerException;
 
                 throw;
