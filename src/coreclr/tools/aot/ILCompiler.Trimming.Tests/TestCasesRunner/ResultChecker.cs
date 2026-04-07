@@ -35,7 +35,7 @@ using Xunit;
 
 namespace Mono.Linker.Tests.TestCasesRunner
 {
-    partial class ResultChecker
+    public partial class ResultChecker
     {
 #if !ILTRIM
         private readonly BaseAssemblyResolver _originalsResolver;

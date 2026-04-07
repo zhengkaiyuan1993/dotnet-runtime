@@ -138,11 +138,11 @@ namespace ILCompiler.DependencyAnalysis
             // in the same order as tehy were in the input assembly.)
             PropertyDefinitionHandle propertyHandle = writeContext.TokenMap.MapTypePropertyList(Handle);
             if (!propertyHandle.IsNil)
-                builder.AddPropertyMap(Handle, propertyHandle);
+                builder.AddPropertyMap((TypeDefinitionHandle)writeContext.TokenMap.MapToken(Handle), propertyHandle);
 
             EventDefinitionHandle eventHandle = writeContext.TokenMap.MapTypeEventList(Handle);
             if (!eventHandle.IsNil)
-                builder.AddEventMap(Handle, eventHandle);
+                builder.AddEventMap((TypeDefinitionHandle)writeContext.TokenMap.MapToken(Handle), eventHandle);
 
             TypeDefinitionHandle outputHandle = builder.AddTypeDefinition(typeDef.Attributes,
                 builder.GetOrAddString(reader.GetString(typeDef.Namespace)),

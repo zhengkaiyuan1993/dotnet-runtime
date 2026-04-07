@@ -25,7 +25,7 @@ namespace ILCompiler
         private readonly EcmaModule _module;
         private readonly List<TokenWriterNode> _tokensToWrite;
 
-        public string AssemblyName => _module.Assembly.GetName().Name;
+        public string FileName => Path.GetFileName(_factory.TypeSystemContext.GetPathForModule(_module));
 
         private ModuleWriter(NodeFactory factory, EcmaModule module, List<TokenWriterNode> tokensToWrite)
             => (_factory, _module, _tokensToWrite) = (factory, module, tokensToWrite);
@@ -82,12 +82,13 @@ namespace ILCompiler
             }
 
             // Map any other things
-            MethodDefinitionHandle sourceEntryPoint = default;
+            MethodDefinitionHandle outputEntryPoint = default;
             CorHeader corHeader = _module.PEReader.PEHeaders.CorHeader;
             Debug.Assert((corHeader.Flags & CorFlags.NativeEntryPoint) == 0);
             if (corHeader.EntryPointTokenOrRelativeVirtualAddress != 0)
             {
-                sourceEntryPoint = (MethodDefinitionHandle)MetadataTokens.Handle(corHeader.EntryPointTokenOrRelativeVirtualAddress);
+                var sourceEntryPoint = (MethodDefinitionHandle)MetadataTokens.Handle(corHeader.EntryPointTokenOrRelativeVirtualAddress);
+                outputEntryPoint = (MethodDefinitionHandle)tokenMap.MapToken(sourceEntryPoint);
             }
 
             // Serialize to the output PE file
@@ -100,7 +101,7 @@ namespace ILCompiler
                 context.MethodBodyEncoder.Builder,
                 mappedFieldData: context.FieldDataBuilder,
                 managedResources: context.ManagedResourceBuilder,
-                entryPoint: (MethodDefinitionHandle)tokenMap.MapToken(sourceEntryPoint));
+                entryPoint: outputEntryPoint);
 
             var o = new BlobBuilder();
             peBuilder.Serialize(o);

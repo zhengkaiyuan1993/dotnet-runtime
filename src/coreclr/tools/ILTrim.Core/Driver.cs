@@ -73,13 +73,12 @@ namespace Mono.Linker
             analyzer.ComputeMarkedNodes();
 
             var writers = ModuleWriter.CreateWriters(factory, analyzer.MarkedNodeList);
-            if (!File.Exists(context.OutputDirectory))
+            if (!Directory.Exists(context.OutputDirectory))
                 Directory.CreateDirectory(context.OutputDirectory);
             RunForEach(writers, writer =>
             {
-                var ext = writer.AssemblyName == "test" ? ".exe" : ".dll";
-                string outputPath = Path.Combine(context.OutputDirectory, writer.AssemblyName + ext);
-                using var outputStream = File.OpenWrite(outputPath);
+                string outputPath = Path.Combine(context.OutputDirectory, writer.FileName);
+                using var outputStream = File.Create(outputPath);
                 writer.Save(outputStream);
             });
 

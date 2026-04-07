@@ -92,7 +92,12 @@ namespace ILCompiler.DependencyAnalysis
                     Internal.TypeSystem.TypeFlags.Int64 => 8,
                     _ => typeDesc.Module.MetadataReader.GetTypeDefinition(typeDesc.Handle).GetLayout().Size
                 };
+
+                int packingSize = typeDesc.Module.MetadataReader.GetTypeDefinition(typeDesc.Handle).GetLayout().PackingSize;
+                int align = packingSize > 1 ? packingSize : 1;
+
                 BlobBuilder outputBodyBuilder = writeContext.FieldDataBuilder;
+                outputBodyBuilder.Align(align);
                 int currentRVA = outputBodyBuilder.Count;
                 outputBodyBuilder.WriteBytes(rvaBlobReader, fieldSize);
                 writeContext.MetadataBuilder.AddFieldRelativeVirtualAddress(

@@ -92,12 +92,12 @@ namespace Mono.Linker
 
             public void AddSearchDirectory(string directory)
             {
-                foreach (var file in Directory.GetFiles(directory + "*.exe"))
+                foreach (var file in Directory.GetFiles(directory, "*.exe"))
                 {
                     _referencePathsFromDirectories[Path.GetFileNameWithoutExtension(file)] = file;
                 }
 
-                foreach (var file in Directory.GetFiles(directory + "*.dll"))
+                foreach (var file in Directory.GetFiles(directory, "*.dll"))
                 {
                     _referencePathsFromDirectories[Path.GetFileNameWithoutExtension(file)] = file;
                 }
@@ -113,9 +113,9 @@ namespace Mono.Linker
                 Dictionary<string, string> result = new Dictionary<string, string>(_referencePathsFromDirectories);
 
                 foreach ((string assemblyName, string fileName) in _referencePaths)
-                    _referencePaths[assemblyName] = fileName;
+                    result[assemblyName] = fileName;
 
-                return _referencePaths;
+                return result;
             }
         }
     }

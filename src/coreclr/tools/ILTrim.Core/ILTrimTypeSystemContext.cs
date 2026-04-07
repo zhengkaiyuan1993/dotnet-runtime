@@ -15,7 +15,7 @@ using Debug = System.Diagnostics.Debug;
 
 namespace ILCompiler
 {
-    public class ILTrimTypeSystemContext : MetadataTypeSystemContext
+    public class ILTrimTypeSystemContext : MetadataTypeSystemContext, IMetadataStringDecoderProvider
     {
         private readonly MetadataRuntimeInterfacesAlgorithm _metadataRuntimeInterfacesAlgorithm = new MetadataRuntimeInterfacesAlgorithm();
         private readonly MetadataVirtualMethodAlgorithm _virtualMethodAlgorithm = new MetadataVirtualMethodAlgorithm();
@@ -119,21 +119,9 @@ namespace ILCompiler
             return null;
         }
 
-        public EcmaModule GetModuleFromPath(string filePath)
+        public string GetPathForModule(EcmaModule module)
         {
-            return GetOrAddModuleFromPath(filePath);
-        }
-
-        private EcmaModule GetOrAddModuleFromPath(string filePath)
-        {
-            // This method is not expected to be called frequently. Linear search is acceptable.
-            foreach (var entry in ModuleHashtable.Enumerator.Get(_moduleHashtable))
-            {
-                if (entry.FilePath == filePath)
-                    return entry.Module;
-            }
-
-            return AddModule(filePath, null);
+            return _moduleHashtable.TryGetValue(module, out ModuleData value) ? value.FilePath : throw new InvalidOperationException();
         }
 
         public static unsafe PEReader OpenPEFile(string filePath, out MemoryMappedViewAccessor mappedViewAccessor)
