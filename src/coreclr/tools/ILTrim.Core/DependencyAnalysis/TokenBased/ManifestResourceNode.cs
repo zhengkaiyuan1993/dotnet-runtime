@@ -106,10 +106,24 @@ namespace ILCompiler.DependencyAnalysis
             uint offset = (uint)resourceBuilder.Count;
             resourceBuilder.WriteUInt32((uint)length);
             resourceBuilder.WriteBytes(resourceReader.ReadBytes(length));
+            EntityHandle implementation = resource.Implementation;
+            if (implementation.Kind == HandleKind.AssemblyReference)
+            {
+                var assemblyRefNode = writeContext.Factory.AssemblyReference(
+                    _module,
+                    (EcmaAssembly)_module.GetObject(implementation));
+                Debug.Assert(assemblyRefNode.TargetToken.HasValue);
+                implementation = (EntityHandle)assemblyRefNode.TargetToken.Value;
+            }
+            else
+            {
+                implementation = writeContext.TokenMap.MapToken(implementation);
+            }
+
             return writeContext.MetadataBuilder.AddManifestResource(
                 resource.Attributes,
                 builder.GetOrAddString(reader.GetString(resource.Name)),
-                writeContext.TokenMap.MapToken(resource.Implementation),
+                implementation,
                 offset);
         }
 
