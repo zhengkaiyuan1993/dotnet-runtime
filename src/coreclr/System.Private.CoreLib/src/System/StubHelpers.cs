@@ -1457,8 +1457,11 @@ namespace System.StubHelpers
 
         public static void Free(ref T managed, byte* unmanaged, int nativeSize, ref CleanupWorkListElement? cleanupWorkList)
         {
-            FreeCore(ref managed, unmanaged, ref cleanupWorkList);
-            NativeMemory.Clear(unmanaged, (nuint)nativeSize);
+            if (unmanaged != null)
+            {
+                FreeCore(ref managed, unmanaged, ref cleanupWorkList);
+                NativeMemory.Clear(unmanaged, (nuint)nativeSize);
+            }
         }
     }
 
@@ -1597,8 +1600,11 @@ namespace System.StubHelpers
 
         public static void Free(T? managed, byte* unmanaged, int nativeSize, ref CleanupWorkListElement? cleanupWorkList)
         {
-            FreeCore(managed, unmanaged, ref cleanupWorkList);
-            NativeMemory.Clear(unmanaged, (nuint)nativeSize);
+            if (unmanaged != null)
+            {
+                FreeCore(managed, unmanaged, ref cleanupWorkList);
+                NativeMemory.Clear(unmanaged, (nuint)nativeSize);
+            }
         }
     }
 
@@ -1948,21 +1954,13 @@ namespace System.StubHelpers
         internal static unsafe void LayoutTypeConvertToUnmanaged(object obj, byte* pNative, ref CleanupWorkListElement? pCleanupWorkList)
         {
             RuntimeType type = (RuntimeType)obj.GetType();
-            bool hasLayout = Marshal.HasLayout(new QCallTypeHandle(ref type), out bool isBlittable, out int size);
-            Debug.Assert(hasLayout);
-
-            if (isBlittable)
-            {
-                SpanHelpers.Memmove(ref *pNative, ref obj.GetRawData(), (nuint)size);
-                return;
-            }
-
             Marshal.LayoutTypeMarshalerMethods methods = Marshal.LayoutTypeMarshalerMethods.GetMarshalMethodsForType(type);
 
-            methods.ConvertToUnmanaged(obj, pNative, size, ref pCleanupWorkList);
+            methods.ConvertToUnmanaged(obj, pNative, ref pCleanupWorkList);
         }
 
         [UnmanagedCallersOnly]
+        [RequiresUnsafe]
         internal static unsafe void LayoutTypeConvertToUnmanaged(object* obj, byte* pNative, Exception* pException)
         {
             try
@@ -1979,21 +1977,13 @@ namespace System.StubHelpers
         internal static unsafe void LayoutTypeConvertToManaged(object obj, byte* pNative)
         {
             RuntimeType type = (RuntimeType)obj.GetType();
-            bool hasLayout = Marshal.HasLayout(new QCallTypeHandle(ref type), out bool isBlittable, out int size);
-            Debug.Assert(hasLayout);
-
-            if (isBlittable)
-            {
-                SpanHelpers.Memmove(ref obj.GetRawData(), ref *pNative, (nuint)size);
-                return;
-            }
-
             Marshal.LayoutTypeMarshalerMethods methods = Marshal.LayoutTypeMarshalerMethods.GetMarshalMethodsForType(type);
 
-            methods.ConvertToManaged(obj, pNative, ref Unsafe.NullRef<CleanupWorkListElement?>());
+            methods.ConvertToManaged(obj, pNative);
         }
 
         [UnmanagedCallersOnly]
+        [RequiresUnsafe]
         internal static unsafe void LayoutTypeConvertToManaged(object* obj, byte* pNative, Exception* pException)
         {
             try
