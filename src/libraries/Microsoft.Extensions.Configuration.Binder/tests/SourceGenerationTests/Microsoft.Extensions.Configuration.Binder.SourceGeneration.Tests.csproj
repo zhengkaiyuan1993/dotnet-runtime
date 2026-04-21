@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>$(NetCoreAppCurrent);$(NetFrameworkCurrent)</TargetFrameworks>
@@ -25,6 +25,7 @@
   <ItemGroup>
     <Compile Include="$(CommonPath)..\tests\SourceGenerators\RoslynTestUtils.cs" Link="SourceGenerators\RoslynTestUtils.cs" />
     <Compile Include="$(CommonPath)..\tests\SourceGenerators\GeneratorTestHelpers.cs" Link="SourceGenerators\GeneratorTestHelpers.cs" />
+    <Compile Include="$(CommonPath)..\tests\SourceGenerators\GlobalOptionsOnlyProvider.cs" Link="SourceGenerators\GlobalOptionsOnlyProvider.cs" />
     <Compile Include="$(CoreLibSharedDir)System\Runtime\CompilerServices\IsExternalInit.cs" Link="Common\System\Runtime\CompilerServices\IsExternalInit.cs" />
     <Compile Include="$(LibrariesProjectRoot)Microsoft.Extensions.Configuration\tests\Common\ConfigurationProviderExtensions.cs" Link="Common\ConfigurationProviderExtensions.cs" />
     <Compile Include="$(LibrariesProjectRoot)Microsoft.Extensions.Configuration\tests\Common\TestStreamHelpers.cs" Link="Common\TestStreamHelpers.cs" />
@@ -44,6 +45,7 @@
     <ProjectReference Include="$(LibrariesProjectRoot)Microsoft.Extensions.Options.ConfigurationExtensions\src\Microsoft.Extensions.Options.ConfigurationExtensions.csproj" SkipUseReferenceAssembly="true" />
     <ProjectReference Include="..\..\src\Microsoft.Extensions.Configuration.Binder.csproj" SkipUseReferenceAssembly="true" />
     <ProjectReference Include="..\..\gen\Microsoft.Extensions.Configuration.Binder.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+    <ProjectReference Include="$(RepoRoot)src\tools\illink\src\ILLink.RoslynAnalyzer\ILLink.RoslynAnalyzer.csproj" ReferenceOutputAssembly="true" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
