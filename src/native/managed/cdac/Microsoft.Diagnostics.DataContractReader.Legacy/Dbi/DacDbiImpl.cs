@@ -764,7 +764,53 @@ public sealed unsafe partial class DacDbiImpl : IDacDbiInterface
     }
 
     public int GetObjectForCCW(ulong ccwPtr, ulong* pRetVal)
-        => LegacyFallbackHelper.CanFallback() && _legacy is not null ? _legacy.GetObjectForCCW(ccwPtr, pRetVal) : HResults.E_NOTIMPL;
+    {
+        *pRetVal = 0;
+        int hr = HResults.S_OK;
+        try
+        {
+            TargetPointer objectHandle = TargetPointer.Null;
+            TargetPointer ccwAddress = new(ccwPtr);
+            bool comWrappersSuccess = false;
+
+            if (_target.Contracts.TryGetContract<IComWrappers>(out IComWrappers? comWrappers))
+            {
+                TargetPointer managedObjectWrapper = comWrappers.GetManagedObjectWrapperFromCCW(ccwAddress);
+                if (managedObjectWrapper != TargetPointer.Null)
+                {
+                    comWrappersSuccess = _target.TryReadPointer(managedObjectWrapper, out objectHandle);
+                }
+            }
+
+            if (!comWrappersSuccess && _target.Contracts.TryGetContract<IBuiltInCOM>(out IBuiltInCOM? builtInCOM))
+            {
+                TargetPointer ccw = builtInCOM.GetCCWFromInterfacePointer(ccwAddress);
+                if (ccw == TargetPointer.Null)
+                {
+                    ccw = ccwAddress;
+                }
+                ccw = builtInCOM.GetStartWrapper(ccw);
+                objectHandle = builtInCOM.GetObjectHandle(ccw);
+            }
+
+            *pRetVal = objectHandle.Value;
+        }
+        catch (System.Exception ex)
+        {
+            hr = ex.HResult;
+        }
+#if DEBUG
+        if (_legacy is not null)
+        {
+            ulong retValLocal;
+            int hrLocal = _legacy.GetObjectForCCW(ccwPtr, &retValLocal);
+            Debug.ValidateHResult(hr, hrLocal);
+            if (hr == HResults.S_OK)
+                Debug.Assert(*pRetVal == retValLocal, $"cDAC: {*pRetVal:x}, DAC: {retValLocal:x}");
+        }
+#endif
+        return hr;
+    }
 
     public int GetCurrentCustomDebuggerNotification(ulong vmThread, ulong* pRetVal)
     {
@@ -1123,7 +1169,31 @@ public sealed unsafe partial class DacDbiImpl : IDacDbiInterface
         => LegacyFallbackHelper.CanFallback() && _legacy is not null ? _legacy.GetStackFramesFromException(vmObject, pDacStackFrames) : HResults.E_NOTIMPL;
 
     public int IsRcw(ulong vmObject, Interop.BOOL* pResult)
-        => LegacyFallbackHelper.CanFallback() && _legacy is not null ? _legacy.IsRcw(vmObject, pResult) : HResults.E_NOTIMPL;
+    {
+        *pResult = Interop.BOOL.FALSE;
+        int hr = HResults.S_OK;
+        try
+        {
+            IObject obj = _target.Contracts.Object;
+            _ = obj.GetBuiltInComData(new TargetPointer(vmObject), out TargetPointer rcw, out _, out _);
+            *pResult = rcw != TargetPointer.Null ? Interop.BOOL.TRUE : Interop.BOOL.FALSE;
+        }
+        catch (System.Exception ex)
+        {
+            hr = ex.HResult;
+        }
+#if DEBUG
+        if (_legacy is not null)
+        {
+            Interop.BOOL resultLocal;
+            int hrLocal = _legacy.IsRcw(vmObject, &resultLocal);
+            Debug.ValidateHResult(hr, hrLocal);
+            if (hr == HResults.S_OK)
+                Debug.Assert(*pResult == resultLocal, $"cDAC: {*pResult}, DAC: {resultLocal}");
+        }
+#endif
+        return hr;
+    }
 
     public int GetRcwCachedInterfacePointers(ulong vmObject, Interop.BOOL bIInspectableOnly, nint pDacItfPtrs)
         => LegacyFallbackHelper.CanFallback() && _legacy is not null ? _legacy.GetRcwCachedInterfacePointers(vmObject, bIInspectableOnly, pDacItfPtrs) : HResults.E_NOTIMPL;
