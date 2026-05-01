@@ -257,6 +257,9 @@ namespace ILCompiler
                     }
                 }
 
+                if (Get(_command.EnableDebugInfo))
+                    compilationRoots.Add(new ManagedDataDescriptorProvider());
+
                 string win32resourcesModule = Get(_command.Win32ResourceModuleName);
                 if (typeSystemContext.Target.IsWindows && !string.IsNullOrEmpty(win32resourcesModule))
                 {
